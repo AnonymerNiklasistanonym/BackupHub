@@ -66,7 +66,6 @@ export class BackupHup {
     public async runJob<JOB_DATA> (job: Job): Promise<Job.Output> {
         const logs: Log.Entry[] = [];
 
-        console.info(job);
         for (const instruction of job.instructions) {
             const indexOfPlugin = this.plugins.findIndex(x => x.name === instruction.plugin);
             if (indexOfPlugin > -1) {

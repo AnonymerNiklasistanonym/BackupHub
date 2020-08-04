@@ -1,10 +1,12 @@
 /* eslint-disable no-console */
 /* eslint-disable no-duplicate-imports */
 
+import abruneggOneDrive, { AbruneggOneDriveCommands } from "./plugins/abruneggOnedrive";
+import rsync, { RsyncCommands } from "./plugins/rsync";
+import type { AbruneggOneDrive } from "./plugins/abruneggOnedrive";
 import backupHub from "./api/backupHub";
 import { logFormatter } from "./api/helper/logPrinter";
 import type { Rsync } from "./plugins/rsync";
-import rsync from "./plugins/rsync";
 
 // Debug console
 // import { debuglog } from "util";
@@ -15,6 +17,7 @@ import rsync from "./plugins/rsync";
     console.log(backupHub.version);
 
     console.log(logFormatter(await backupHub.addPlugin(rsync)));
+    console.log(logFormatter(await backupHub.addPlugin(abruneggOneDrive)));
 
     backupHub.addGlobalVariable({
         description: "The external backup drives",
@@ -26,27 +29,49 @@ import rsync from "./plugins/rsync";
         value: "niklas"
     });
 
-    const output = await backupHub.runJob({
+    const outputBackupHomeDir = await backupHub.runJob({
         data: {
-            backupDirs: [
-                "${...BACKUP_DRIVE}/BackupManjaroDesktop/"
-            ],
-            sourceDir: "/home/${USER}/"
+            backupDirs: ["${...BACKUP_DRIVE}/BackupManjaroDesktop"],
+            sourceDir: "/home/${USER}"
         },
         instructions: [
             {
-                command: "Sync",
+                command: RsyncCommands.SYNCHRONIZE,
                 options: {
-                    backupDirs: ["${...BACKUP_DIR}"],
-                    sourceDir: "${SOURCE_DIR}"
+                    backupDirs: ["${...BACKUP_DIR}/"],
+                    excludeFrom: ["/home/${USER}/Documents/github/BackupScriptsLinux/rsync_exclude_list.txt"],
+                    sourceDir: "${SOURCE_DIR}/"
                 },
                 plugin: "Rsync"
             } as Rsync.Instruction
         ],
         name: "Backup home directory"
     });
+    console.log(logFormatter(outputBackupHomeDir.log));
 
-    console.log(logFormatter(output.log));
+    const outputBackupOneDriveDir = await backupHub.runJob({
+        data: {
+            backupDirs: ["${...BACKUP_DRIVE}/Cloud/OneDrive (${USER} - latest)"],
+            sourceDir: "/home/${USER}/OneDrive"
+        },
+        instructions: [
+            {
+                command: AbruneggOneDriveCommands.SYNCHRONIZE,
+                options: {},
+                plugin: "AbruneggOneDrive"
+            } as AbruneggOneDrive.Instruction,
+            {
+                command: RsyncCommands.SYNCHRONIZE,
+                options: {
+                    backupDirs: ["${...BACKUP_DIR}/"],
+                    sourceDir: "${SOURCE_DIR}/"
+                },
+                plugin: "Rsync"
+            } as Rsync.Instruction
+        ],
+        name: "Backup OneDrive directory"
+    });
+    console.log(logFormatter(outputBackupOneDriveDir.log));
 
 })().catch(err => {
     console.error(err);

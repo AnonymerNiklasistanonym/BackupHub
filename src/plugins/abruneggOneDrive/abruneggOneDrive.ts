@@ -1,15 +1,15 @@
 import type { Log } from "../../api/log";
 import { LogLevel } from "../../api/logLevel";
-import { pluginName } from "../rsync";
+import { pluginName } from "../abruneggOnedrive";
 import { spawn } from "child_process";
 
 
-export enum RsyncCommands {
+export enum AbruneggOneDriveCommands {
     SYNCHRONIZE = "SYNCHRONIZE",
     CUSTOM = "CUSTOM"
 }
 
-export const runRsync = async (cliCommand: string, cliOptions: string[]): Promise<Log.Entry[]> => {
+export const runAbruneggOneDrive = async (cliCommand: string, cliOptions: string[]): Promise<Log.Entry[]> => {
     const logs: Log.Entry[] = [];
 
     logs.push({

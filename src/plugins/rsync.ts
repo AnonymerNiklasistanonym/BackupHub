@@ -1,10 +1,12 @@
 import { existsSync, promises as fs } from "fs";
 import type { Log, Plugin } from "../api/backupHub";
-import { Rsync, runRsync } from "./rsync/rsync";
+import { RsyncCommands, runRsync } from "./rsync/rsync";
 import commandExists from "command-exists";
 import { LogLevel } from "../api/logLevel";
 import { resolveVariableString } from "../api/helper/variableResolution";
-export type { Rsync } from "./rsync/rsync";
+import type { Rsync } from "./rsync/types";
+export type { Rsync } from "./rsync/types";
+export { RsyncCommands } from "./rsync/rsync";
 
 
 export const pluginName = "Rsync";
@@ -13,19 +15,57 @@ export const rsyncCommand = "rsync";
 const rsyncPlugin: Plugin = {
     name: pluginName,
     routines: {
-        runInstruction: async (options, instruction) => {
+        // eslint-disable-next-line complexity
+        runInstruction: async (options, instruction): Promise<Plugin.Output> => {
             const logs: Log.Entry[] = [];
             const rsyncInstruction = instruction as Rsync.Instruction;
-            console.info(options.job);
 
             const cliOptions: string[] = [];
-            if (rsyncInstruction.command === "Sync") {
-                cliOptions.push("--recursive", "--archive", "--verbose", "--delete",
-                    "--exclude-from=/home/niklas/Documents/github/BackupScriptsLinux/rsync_exclude_list.txt",
-                    "--delete-excluded");
+            if (rsyncInstruction.command === RsyncCommands.CUSTOM) {
+                // Set nothing
+                if (rsyncInstruction.options.archive === true) {
+                    cliOptions.push("--archive");
+                }
+                if (rsyncInstruction.options.recursive === true) {
+                    cliOptions.push("--recursive");
+                }
+                if (rsyncInstruction.options.delete === true) {
+                    cliOptions.push("--delete");
+                }
+                if (rsyncInstruction.options.deleteExcluded === true) {
+                    cliOptions.push("--delete-excluded");
+                }
+                if (rsyncInstruction.options.verbose === true) {
+                    cliOptions.push("--verbose");
+                }
+            } else if (rsyncInstruction.command === RsyncCommands.SYNCHRONIZE) {
+                if (rsyncInstruction.options.archive !== false) {
+                    cliOptions.push("--archive");
+                }
+                if (rsyncInstruction.options.recursive !== false) {
+                    cliOptions.push("--recursive");
+                }
+                if (rsyncInstruction.options.delete !== false) {
+                    cliOptions.push("--delete");
+                }
+                if (rsyncInstruction.options.deleteExcluded !== true) {
+                    cliOptions.push("--delete-excluded");
+                }
+                if (rsyncInstruction.options.verbose !== false) {
+                    cliOptions.push("--verbose");
+                }
+            }
+            if (rsyncInstruction.options.excludeFrom) {
+                for (const file of rsyncInstruction.options.excludeFrom) {
+                    const files = resolveVariableString(options.globals.variables, file);
+                    if (Array.isArray(files)) {
+                        cliOptions.push(... files.map(a => `--exclude-from=${a}`));
+                    } else {
+                        cliOptions.push(`--exclude-from=${files}`);
+                    }
+                }
             }
             // source dir
-            console.info(options.globals.variables, rsyncInstruction.options.sourceDir);
             const sourceDir = resolveVariableString(options.globals.variables,
                 rsyncInstruction.options.sourceDir);
             if (Array.isArray(sourceDir)) {
@@ -72,11 +112,11 @@ const rsyncPlugin: Plugin = {
 
             return { log: logs };
         },
-        setup: async (options) => {
+        setup: async (): Promise<Plugin.Output> => {
             const logs: Log.Entry[] = [];
 
             logs.push({
-                content: "Check if the rsync command can be found",
+                content: `Check if the '${rsyncCommand}' command can be found`,
                 creator: pluginName,
                 time: new Date()
             });
@@ -86,7 +126,7 @@ const rsyncPlugin: Plugin = {
                         return reject(err);
                     }
                     logs.push({
-                        content: `The rsync command was found: ${exists}`,
+                        content: `The '${rsyncCommand}' command was found: ${exists}`,
                         creator: pluginName,
                         time: new Date()
                     });
@@ -95,7 +135,7 @@ const rsyncPlugin: Plugin = {
             });
 
             if (!rsyncFound) {
-                throw Error(`Rsync Plugin: The command '${rsyncCommand}' was not found`);
+                throw Error(`${pluginName} Plugin: The command '${rsyncCommand}' was not found`);
             }
 
             return { log: logs };

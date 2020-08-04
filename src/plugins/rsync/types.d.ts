@@ -1,5 +1,5 @@
 import type { Instruction as ApiInstruction } from "../../api/instruction";
-import { Commands } from "./rsync";
+import type { RsyncCommands } from "./rsync";
 
 export namespace Rsync {
     export interface Options {
@@ -37,12 +37,9 @@ export namespace Rsync {
         excludeFrom?: string[]
     }
 
-    // TODO: Add convenience commands which per default enable certain options
-    export type Commands = "Sync";
-
     export type PluginName = "Rsync";
 
     // eslint-disable-next-line @typescript-eslint/no-empty-interface
-    export interface Instruction extends ApiInstruction<Commands, Options, PluginName> {}
+    export interface Instruction extends ApiInstruction<RsyncCommands, Options, PluginName> {}
 
 }
