@@ -1,0 +1,9 @@
+node_modules
+dist
+.env
+.nyc_output
+coverage
+.vscode/settings.json
+*.db
+*.db-journal
+keys
