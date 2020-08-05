@@ -2,9 +2,11 @@
 /* eslint-disable no-duplicate-imports */
 
 import abruneggOneDrive, { AbruneggOneDriveCommands } from "./plugins/abruneggOnedrive";
+import grive, { GriveCommands } from "./plugins/grive";
 import rsync, { RsyncCommands } from "./plugins/rsync";
 import type { AbruneggOneDrive } from "./plugins/abruneggOnedrive";
 import backupHub from "./api/backupHub";
+import type { Grive } from "./plugins/grive";
 import { logFormatter } from "./api/helper/logPrinter";
 import type { Rsync } from "./plugins/rsync";
 
@@ -18,6 +20,7 @@ import type { Rsync } from "./plugins/rsync";
 
     console.log(logFormatter(await backupHub.addPlugin(rsync)));
     console.log(logFormatter(await backupHub.addPlugin(abruneggOneDrive)));
+    console.log(logFormatter(await backupHub.addPlugin(grive)));
 
     backupHub.addGlobalVariable({
         description: "The external backup drives",
@@ -72,6 +75,33 @@ import type { Rsync } from "./plugins/rsync";
         name: "Backup OneDrive directory"
     });
     console.log(logFormatter(outputBackupOneDriveDir.log));
+
+
+    const outputBackupGoogleDriveDir = await backupHub.runJob({
+        data: {
+            backupDirs: ["${...BACKUP_DRIVE}/Cloud/GoogleDrive (${USER} - latest)"],
+            sourceDir: "/home/${USER}/GoogleDrive"
+        },
+        instructions: [
+            {
+                command: GriveCommands.SYNCHRONIZE,
+                options: {
+                    googleDriveDir: "${SOURCE_DIR}"
+                },
+                plugin: "Grive"
+            } as Grive.Instruction,
+            {
+                command: RsyncCommands.SYNCHRONIZE,
+                options: {
+                    backupDirs: ["${...BACKUP_DIR}/"],
+                    sourceDir: "${SOURCE_DIR}/"
+                },
+                plugin: "Rsync"
+            } as Rsync.Instruction
+        ],
+        name: "Backup OneDrive directory"
+    });
+    console.log(logFormatter(outputBackupGoogleDriveDir.log));
 
 })().catch(err => {
     console.error(err);
