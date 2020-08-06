@@ -39,7 +39,7 @@ const rsyncPlugin: Plugin = {
                     cliOptions.push("--verbose");
                 }
             } else if (rsyncInstruction.command === RsyncCommands.SYNCHRONIZE) {
-                if (rsyncInstruction.options.archive !== false) {
+                if (rsyncInstruction.options.archive === true) {
                     cliOptions.push("--archive");
                 }
                 if (rsyncInstruction.options.recursive !== false) {

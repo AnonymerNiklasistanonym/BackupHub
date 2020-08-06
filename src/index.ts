@@ -34,7 +34,7 @@ import type { Rsync } from "./plugins/rsync";
 
     const outputBackupHomeDir = await backupHub.runJob({
         data: {
-            backupDirs: ["${...BACKUP_DRIVE}/BackupManjaroDesktop"],
+            backupDirs: ["${...BACKUP_DRIVE}/BackupManjaroDesktop/home_${USER}"],
             sourceDir: "/home/${USER}"
         },
         instructions: [
