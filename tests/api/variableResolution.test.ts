@@ -1,6 +1,6 @@
 import chai from "chai";
 import { describe } from "mocha";
-import { resolveVariableString } from "../../src/api/helper/variableResolution";
+import { resolveVariableString } from "../../src/api/helper";
 
 
 export default (): Mocha.Suite => {
