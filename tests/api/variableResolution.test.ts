@@ -24,7 +24,7 @@ export default (): Mocha.Suite => {
                 {
                     description: "The external backup drives",
                     name: "BACKUP_DRIVE",
-                    value: [ "/run/media/$USER/Backup 4TB", "/run/media/$USER/Backup #1" ]
+                    value: [ "/run/media/${USER}/Backup 4TB", "/run/media/${USER}/Backup #1" ]
                 },
                 {
                     name: "BACKUP_DIR",
@@ -32,8 +32,29 @@ export default (): Mocha.Suite => {
                 }
             ], "${BACKUP_DIR}")).to.be.deep.equals(
                 [
-                    "/run/media/$USER/Backup 4TB/BackupManjaroDesktop/",
-                    "/run/media/$USER/Backup #1/BackupManjaroDesktop/"
+                    "/run/media/${USER}/Backup 4TB/BackupManjaroDesktop/",
+                    "/run/media/${USER}/Backup #1/BackupManjaroDesktop/"
+                ]
+            );
+
+            chai.expect(resolveVariableString([
+                {
+                    description: "The external backup drives",
+                    name: "BACKUP_DRIVE",
+                    value: [ "/run/media/${USER}/Backup 4TB", "/run/media/${USER}/Backup #1" ]
+                },
+                {
+                    name: "BACKUP_DIR",
+                    value: "${...BACKUP_DRIVE}/BackupManjaroDesktop/"
+                },
+                {
+                    name: "USER",
+                    value: "hans"
+                }
+            ], "${BACKUP_DIR}")).to.be.deep.equals(
+                [
+                    "/run/media/hans/Backup 4TB/BackupManjaroDesktop/",
+                    "/run/media/hans/Backup #1/BackupManjaroDesktop/"
                 ]
             );
 
