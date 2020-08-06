@@ -3,11 +3,11 @@
 
 import abruneggOneDrive, { AbruneggOneDriveCommands } from "./plugins/abruneggOnedrive";
 import grive, { GriveCommands } from "./plugins/grive";
-import rsync, { RsyncCommands } from "./plugins/rsync";
+import rsync, { RsyncCommand } from "./plugins/rsync";
 import type { AbruneggOneDrive } from "./plugins/abruneggOnedrive";
 import backupHub from "./api/backupHub";
 import type { Grive } from "./plugins/grive";
-import { logFormatter } from "./api/helper/logPrinter";
+import { logFormatter } from "./api/helper/logFormatter";
 import type { Rsync } from "./plugins/rsync";
 
 // Debug console
@@ -39,7 +39,7 @@ import type { Rsync } from "./plugins/rsync";
         },
         instructions: [
             {
-                command: RsyncCommands.SYNCHRONIZE,
+                command: RsyncCommand.SYNCHRONIZE,
                 options: {
                     backupDirs: ["${...BACKUP_DIR}/"],
                     excludeFrom: ["/home/${USER}/Documents/github/BackupScriptsLinux/rsync_exclude_list.txt"],
@@ -64,7 +64,7 @@ import type { Rsync } from "./plugins/rsync";
                 plugin: "AbruneggOneDrive"
             } as AbruneggOneDrive.Instruction,
             {
-                command: RsyncCommands.SYNCHRONIZE,
+                command: RsyncCommand.SYNCHRONIZE,
                 options: {
                     backupDirs: ["${...BACKUP_DIR}/"],
                     sourceDir: "${SOURCE_DIR}/"
@@ -91,7 +91,7 @@ import type { Rsync } from "./plugins/rsync";
                 plugin: "Grive"
             } as Grive.Instruction,
             {
-                command: RsyncCommands.SYNCHRONIZE,
+                command: RsyncCommand.SYNCHRONIZE,
                 options: {
                     backupDirs: ["${...BACKUP_DIR}/"],
                     sourceDir: "${SOURCE_DIR}/"

@@ -1,33 +1,24 @@
+import { createLogEntryGenerator } from "./createLogEntryGenerator";
 import { debuglog } from "util";
-import type { Log } from "../../api/log";
-import { LogLevel } from "../../api/logLevel";
-import { PluginError } from "src/api/error";
-import { pluginName } from "../rsync";
+import type { Log } from "../log";
+import { LogLevel } from "../logLevel";
+import { PluginError } from "../error";
 import { spawn } from "child_process";
 
+const debug = debuglog("app-helper-runShellCommand");
+const createLogEntry = createLogEntryGenerator(debug, "Helper:RunShellCommand");
 
-const debug = debuglog("app-plugin-rsync");
-
-const createLogEntry = (content: string, logLevel?: LogLevel) => {
-    debug(content);
-    return {
-        content,
-        creator: pluginName,
-        level: logLevel !== undefined ? logLevel : LogLevel.INFO,
-        time: new Date()
-    };
-};
-
-export enum RsyncCommands {
-    SYNCHRONIZE = "SYNCHRONIZE",
-    CUSTOM = "CUSTOM"
-}
-
-export const runRsync = async (cliCommand: string, cliOptions: string[]): Promise<Log.Entry[]> => {
+export const runShellCommand = async (cliCommand: string, cliArgs?: string[]): Promise<Log.Entry[]> => {
     const logs: Log.Entry[] = [];
 
-    logs.push(createLogEntry(`Start subprocess: "${cliCommand} ${cliOptions.join(" ")}"`));
-    const subprocess = spawn(cliCommand, cliOptions, { shell: true });
+
+    let completeCommand = cliCommand;
+    if (cliArgs !== undefined && cliArgs.length > 0) {
+        completeCommand += ` ${cliArgs.join(" ")}`;
+    }
+
+    logs.push(createLogEntry(`Start subprocess: "${completeCommand}"`));
+    const subprocess = spawn(cliCommand, cliArgs, { shell: true });
 
     try {
         await new Promise((resolve, reject) => {
@@ -59,7 +50,6 @@ export const runRsync = async (cliCommand: string, cliOptions: string[]): Promis
     } catch (err) {
         debug(JSON.stringify(err));
         const pluginError: PluginError = err as Error;
-        pluginError.message = `Plugin ${pluginName}: ${pluginError.message}`;
         pluginError.logs = logs;
         throw pluginError;
     }

@@ -2,7 +2,7 @@ import { GriveCommands, runGrive } from "./grive/grive";
 import type { Log, Plugin } from "../api/backupHub";
 import commandExists from "command-exists";
 import type { Grive } from "./grive/types";
-import { resolveVariableString } from "../api/helper/variableResolution";
+import { resolveVariableString } from "../api/helper/resolveVariableString";
 export type { Grive } from "./grive/types";
 export { GriveCommands } from "./grive/grive";
 

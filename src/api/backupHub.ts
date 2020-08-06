@@ -69,20 +69,25 @@ export class BackupHup {
         for (const instruction of job.instructions) {
             const indexOfPlugin = this.plugins.findIndex(x => x.name === instruction.plugin);
             if (indexOfPlugin > -1) {
-                const output = await this.plugins[indexOfPlugin].routines.runInstruction({
-                    globals: {
-                        methods: this.methods,
-                        variables: this.variables.concat({
-                            name: "SOURCE_DIR",
-                            value: job.data.sourceDir
-                        }, {
-                            name: "BACKUP_DIR",
-                            value: job.data.backupDirs
-                        })
-                    },
-                    job: job.data
-                }, instruction);
-                logs.push(... output.log);
+                try {
+                    const output = await this.plugins[indexOfPlugin].routines.runInstruction({
+                        globals: {
+                            methods: this.methods,
+                            variables: this.variables.concat({
+                                name: "SOURCE_DIR",
+                                value: job.data.sourceDir
+                            }, {
+                                name: "BACKUP_DIR",
+                                value: job.data.backupDirs
+                            })
+                        },
+                        job: job.data
+                    }, instruction);
+                    logs.push(... output.log);
+                } catch (err) {
+                    // TODO: Handle error with logs
+                    throw err;
+                }
             } else {
                 throw Error(`The plugin '${instruction.plugin}' was not found (job: ${job.name})`);
             }
