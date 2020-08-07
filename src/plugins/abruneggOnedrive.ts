@@ -1,8 +1,10 @@
+import { commandCanBeFound, createLogEntryGenerator, runShellCommand } from "../api/helper";
 import type { Log, Plugin } from "../api/backupHub";
 import type { AbruneggOneDrive } from "./abruneggOneDrive/types";
 export type { AbruneggOneDrive } from "./abruneggOneDrive/types";
-import commandExists from "command-exists";
-import { runShellCommand } from "../api/helper";
+import { debuglog } from "util";
+import { LogLevel } from "../api/logLevel";
+import { PluginError } from "../api/error";
 
 
 export const pluginName = "AbruneggOneDrive";
@@ -10,7 +12,12 @@ export enum AbruneggOneDriveCommand {
     SYNCHRONIZE = "SYNCHRONIZE",
     CUSTOM = "CUSTOM"
 }
-export const abruneggOneDriveCommand = "onedrive";
+export const shellCommand = "onedrive";
+
+
+const debug = debuglog("app-plugin-abruneggOneDrive");
+const createLogEntry = createLogEntryGenerator(debug, pluginName);
+
 
 const abruneggOneDrivePlugin: Plugin = {
     name: pluginName,
@@ -38,7 +45,7 @@ const abruneggOneDrivePlugin: Plugin = {
                 }
             }
 
-            const output = await runShellCommand(abruneggOneDriveCommand, cliOptions, {
+            const output = await runShellCommand(shellCommand, cliOptions, {
                 dryRun: options.job.dryRun
             });
             logs.push(... output);
@@ -48,27 +55,19 @@ const abruneggOneDrivePlugin: Plugin = {
         setup: async (): Promise<Plugin.Output> => {
             const logs: Log.Entry[] = [];
 
-            logs.push({
-                content: `Check if the '${abruneggOneDriveCommand}' command can be found`,
-                creator: pluginName,
-                time: new Date()
-            });
-            const rsyncFound = await new Promise<boolean>((resolve, reject) => {
-                commandExists(abruneggOneDriveCommand, (err, exists) => {
-                    if (err) {
-                        return reject(err);
-                    }
-                    logs.push({
-                        content: `The '${abruneggOneDriveCommand}' command was found: ${exists}`,
-                        creator: pluginName,
-                        time: new Date()
-                    });
-                    return resolve(exists);
-                });
-            });
-
-            if (!rsyncFound) {
-                throw Error(`${pluginName} Plugin: The command '${abruneggOneDriveCommand}' was not found`);
+            try {
+                if (await commandCanBeFound(shellCommand)) {
+                    logs.push(createLogEntry(`The '${shellCommand}' command was found`));
+                } else {
+                    logs.push(createLogEntry(`The '${shellCommand}' command was not found`,
+                        LogLevel.ERROR));
+                    throw Error(`The '${shellCommand}' command was not found`);
+                }
+            } catch (err) {
+                const pluginError: PluginError = err as Error;
+                pluginError.message = `Plugin ${pluginName}: ${pluginError.message}`;
+                pluginError.logs = logs;
+                throw pluginError;
             }
 
             return { log: logs };

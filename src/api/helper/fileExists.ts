@@ -11,7 +11,7 @@ export const fileExists = async (filePath: string): Promise<boolean> => {
         return stat.isFile();
     } catch (err) {
         if ((err as FsStatError).code === "ENOENT") {
-            throw Error(`File '${filePath}' does not exist`);
+            return false;
         }
         throw err;
     }
@@ -23,7 +23,7 @@ export const directoryExists = async (directoryPath: string): Promise<boolean> =
         return stat.isDirectory();
     } catch (err) {
         if ((err as FsStatError).code === "ENOENT") {
-            throw Error(`Directory '${directoryPath}' does not exist`);
+            return false;
         }
         throw err;
     }

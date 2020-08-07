@@ -1,10 +1,10 @@
 import {
-    commandCanBeFound, createLogEntryGenerator, fileExists, resolveVariableString, runShellCommand
+    checkAndCreateBackupDir, createLogEntryGenerator, resolveVariableString
 } from "../api/helper";
-import { existsSync, promises as fs } from "fs";
 import type { CopyFiles } from "./copyFiles/types";
 export type { CopyFiles } from "./copyFiles/types";
 import { debuglog } from "util";
+import { promises as fs } from "fs";
 import fsExtra from "fs-extra";
 import glob from "glob";
 import type { Log } from "../api/log";
@@ -87,32 +87,16 @@ const copyFilesPlugin: Plugin = {
                             await fs.rmdir(backupDir, { recursive: true });
                         }
                     }
+
                     // Check if each backup directory exists or can be created
-                    if (!existsSync(backupDir)) {
-                        logs.push({
-                            content: `Directory was not found - try to create it: "${backupDir}"`,
-                            creator: pluginName,
-                            level: LogLevel.INFO,
-                            time: new Date()
-                        });
-                        try {
-                            await fs.mkdir(backupDir, { recursive: true });
-                            logs.push({
-                                content: `Directory was created: "${backupDir}"`,
-                                creator: pluginName,
-                                level: LogLevel.INFO,
-                                time: new Date()
-                            });
-                        } catch (err) {
-                            logs.push({
-                                content: `Stop - the directory could not be created: "${backupDir}"`,
-                                creator: pluginName,
-                                level: LogLevel.WARNING,
-                                time: new Date()
-                            });
-                            continue;
-                        }
+                    const backupDirStatus = await checkAndCreateBackupDir(backupDir, {
+                        dryRun: options.job.dryRun
+                    });
+                    logs.push(... backupDirStatus.logs);
+                    if (!backupDirStatus.exists) {
+                        continue;
                     }
+
                     for (const sourceFile of sourceFiles) {
                         try {
                             const destFilePath = path.join(backupDir, path.relative(options.job.sourceDir, sourceFile));

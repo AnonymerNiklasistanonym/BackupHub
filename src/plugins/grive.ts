@@ -1,9 +1,11 @@
+import { commandCanBeFound, createLogEntryGenerator, directoryExists, runShellCommand } from "../api/helper";
 import type { Log, Plugin } from "../api/backupHub";
-import commandExists from "command-exists";
+import { debuglog } from "util";
 import type { Grive } from "./grive/types";
-import { resolveVariableString } from "../api/helper/resolveVariableString";
-import { runShellCommand } from "../api/helper";
 export type { Grive } from "./grive/types";
+import { LogLevel } from "../api/logLevel";
+import { PluginError } from "../api/error";
+import { resolveVariableString } from "../api/helper/resolveVariableString";
 
 
 export const pluginName = "Grive";
@@ -11,7 +13,12 @@ export enum GriveCommand {
     SYNCHRONIZE = "SYNCHRONIZE",
     CUSTOM = "CUSTOM"
 }
-export const griveCommand = "grive";
+export const shellCommand = "grive";
+
+
+const debug = debuglog("app-plugin-grive");
+const createLogEntry = createLogEntryGenerator(debug, pluginName);
+
 
 const grivePlugin: Plugin = {
     name: pluginName,
@@ -21,59 +28,69 @@ const grivePlugin: Plugin = {
             const logs: Log.Entry[] = [];
             const griveInstruction = instruction as Grive.Instruction;
 
-            const cliOptions: string[] = [];
-            if (griveInstruction.command === GriveCommand.CUSTOM) {
-                // Set nothing
-            } else if (griveInstruction.command === GriveCommand.SYNCHRONIZE) {
-                // Nothing special right now
-            }
-            if (griveInstruction.options.progressBar === true) {
-                cliOptions.push("--progress-bar");
-            }
-            if (griveInstruction.options.verbose === true) {
-                cliOptions.push("--verbose");
-            }
+            try {
 
-            const googleDriveDir = resolveVariableString(options.globals.variables,
-                griveInstruction.options.googleDriveDir);
-            if (Array.isArray(googleDriveDir)) {
-                throw Error(`Grive Plugin: Google Drive directory (${
-                    griveInstruction.options.googleDriveDir}) resolved to more than one path:\n${
-                    JSON.stringify(googleDriveDir)}`);
-            }
+                const cliOptions: string[] = [];
+                if (griveInstruction.command === GriveCommand.CUSTOM) {
+                    // Set nothing
+                } else if (griveInstruction.command === GriveCommand.SYNCHRONIZE) {
+                    // Nothing special right now
+                }
+                if (griveInstruction.options.progressBar === true) {
+                    cliOptions.push("--progress-bar");
+                }
+                if (griveInstruction.options.verbose === true) {
+                    cliOptions.push("--verbose");
+                }
 
-            const output = await runShellCommand(griveCommand, cliOptions, {
-                cwd: googleDriveDir,
-                dryRun: options.job.dryRun
-            });
-            logs.push(... output);
+                const googleDriveDir = resolveVariableString(options.globals.variables,
+                    griveInstruction.options.googleDriveDir);
+                if (Array.isArray(googleDriveDir)) {
+                    const errorMessage = `Grive Plugin: Google Drive directory (${
+                        griveInstruction.options.googleDriveDir}) resolved to more than one path:\n${
+                        JSON.stringify(googleDriveDir)}`;
+                    logs.push(createLogEntry(errorMessage, LogLevel.ERROR));
+                    throw Error(errorMessage);
+                }
+
+                // Check if each backup directory exists or can be created
+                if (!await directoryExists(googleDriveDir)) {
+                    const errorMessage = `Google Drive directory '${googleDriveDir}' does not exist`;
+                    logs.push(createLogEntry(errorMessage, LogLevel.ERROR));
+                    throw Error(errorMessage);
+                }
+
+                const output = await runShellCommand(shellCommand, cliOptions, {
+                    cwd: googleDriveDir,
+                    dryRun: options.job.dryRun
+                });
+                logs.push(... output);
+
+            } catch (err) {
+                const pluginError: PluginError = err as Error;
+                pluginError.message = `Plugin ${pluginName}: ${pluginError.message}`;
+                pluginError.logs = logs;
+                throw pluginError;
+            }
 
             return { log: logs };
         },
         setup: async (): Promise<Plugin.Output> => {
             const logs: Log.Entry[] = [];
 
-            logs.push({
-                content: `Check if the '${griveCommand}' command can be found`,
-                creator: pluginName,
-                time: new Date()
-            });
-            const rsyncFound = await new Promise<boolean>((resolve, reject) => {
-                commandExists(griveCommand, (err, exists) => {
-                    if (err) {
-                        return reject(err);
-                    }
-                    logs.push({
-                        content: `The '${griveCommand}' command was found: ${exists}`,
-                        creator: pluginName,
-                        time: new Date()
-                    });
-                    return resolve(exists);
-                });
-            });
-
-            if (!rsyncFound) {
-                throw Error(`${pluginName} Plugin: The command '${griveCommand}' was not found`);
+            try {
+                if (await commandCanBeFound(shellCommand)) {
+                    logs.push(createLogEntry(`The '${shellCommand}' command was found`));
+                } else {
+                    logs.push(createLogEntry(`The '${shellCommand}' command was not found`,
+                        LogLevel.ERROR));
+                    throw Error(`The '${shellCommand}' command was not found`);
+                }
+            } catch (err) {
+                const pluginError: PluginError = err as Error;
+                pluginError.message = `Plugin ${pluginName}: ${pluginError.message}`;
+                pluginError.logs = logs;
+                throw pluginError;
             }
 
             return { log: logs };

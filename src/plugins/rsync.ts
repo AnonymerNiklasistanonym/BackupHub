@@ -1,7 +1,7 @@
 import {
-    commandCanBeFound, createLogEntryGenerator, fileExists, resolveVariableString, runShellCommand
+    checkAndCreateBackupDir, commandCanBeFound, createLogEntryGenerator, fileExists,
+    resolveVariableString, runShellCommand
 } from "../api/helper";
-import { existsSync, promises as fs } from "fs";
 import { debuglog } from "util";
 import type { Log } from "../api/log";
 import { LogLevel } from "../api/logLevel";
@@ -109,30 +109,12 @@ const rsyncPlugin: Plugin = {
                 }
                 for (const backupDir of backupDirs) {
                     // Check if each backup directory exists or can be created
-                    if (!existsSync(backupDir)) {
-                        logs.push({
-                            content: `Directory was not found - try to create it: "${backupDir}"`,
-                            creator: pluginName,
-                            level: LogLevel.INFO,
-                            time: new Date()
-                        });
-                        try {
-                            await fs.mkdir(backupDir, { recursive: true });
-                            logs.push({
-                                content: `Directory was created: "${backupDir}"`,
-                                creator: pluginName,
-                                level: LogLevel.INFO,
-                                time: new Date()
-                            });
-                        } catch (err) {
-                            logs.push({
-                                content: `Stop - the directory could not be created: "${backupDir}"`,
-                                creator: pluginName,
-                                level: LogLevel.WARNING,
-                                time: new Date()
-                            });
-                            continue;
-                        }
+                    const backupDirStatus = await checkAndCreateBackupDir(backupDir, {
+                        dryRun: options.job.dryRun
+                    });
+                    logs.push(... backupDirStatus.logs);
+                    if (!backupDirStatus.exists) {
+                        continue;
                     }
                     const output = await runShellCommand(shellCommand,
                         [ ... cliArgs, backupDir ].map(cliArg => `'${cliArg}'`), {
