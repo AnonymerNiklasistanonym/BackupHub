@@ -3,7 +3,6 @@ import type { PacmanCommand } from "../pacman";
 
 
 export namespace Pacman {
-    // eslint-disable-next-line @typescript-eslint/no-empty-interface
     export interface Options {
         jsonOutputFilePaths: string[]
     }
