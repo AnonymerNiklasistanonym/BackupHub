@@ -88,7 +88,6 @@ import type { Rsync } from "./plugins/rsync";
     });
     console.log(logFormatter(outputBackupOneDriveDir.log));
 
-
     const outputBackupGoogleDriveDir = await backupHub.runJob({
         data: {
             backupDirs: ["${...BACKUP_DRIVE}/Cloud/GoogleDrive (${USER} - latest)"],
@@ -118,7 +117,7 @@ import type { Rsync } from "./plugins/rsync";
 
     const outputCopyFiles = await backupHub.runJob({
         data: {
-            backupDirs: ["${...BACKUP_DRIVE}/ManjaroDesktop"],
+            backupDirs: ["${...BACKUP_DRIVE}/BackupManjaroDesktop"],
             dryRun,
             sourceDir: "/etc"
         },
@@ -127,7 +126,7 @@ import type { Rsync } from "./plugins/rsync";
                 command: CopyFilesCommand.COPY,
                 options: {
                     backupDirs: ["${...BACKUP_DIR}/host_files"],
-                    delete: true,
+                    deleteBackupDir: true,
                     glob: true,
                     sourceFiles: ["${SOURCE_DIR}/hosts*"]
                 },
@@ -138,9 +137,36 @@ import type { Rsync } from "./plugins/rsync";
     });
     console.log(logFormatter(outputCopyFiles.log));
 
+    const outputCopyFilesVscodeSettings = await backupHub.runJob({
+        data: {
+            backupDirs: ["${...BACKUP_DRIVE}/BackupManjaroDesktop"],
+            dryRun,
+            sourceDir: "/home/${USER}/.config/Code - Insiders/User"
+        },
+        instructions: [
+            {
+                command: CopyFilesCommand.COPY,
+                options: {
+                    backupDirs: ["${...BACKUP_DIR}/vscode_settings_${USER}"],
+                    deleteBackupDir: true,
+                    glob: true,
+                    sourceFiles: [
+                        "${SOURCE_DIR}/keybindings.json",
+                        "${SOURCE_DIR}/settings.json",
+                        "${SOURCE_DIR}/syncLocalSettings.json",
+                        "${SOURCE_DIR}/snippets"
+                    ]
+                },
+                plugin: "CopyFiles"
+            } as CopyFiles.Instruction
+        ],
+        name: "Backup VSCode setting files"
+    });
+    console.log(logFormatter(outputCopyFilesVscodeSettings.log));
+
     const outputPacmanBackup = await backupHub.runJob({
         data: {
-            backupDirs: ["${...BACKUP_DRIVE}/ManjaroDesktop"],
+            backupDirs: ["${...BACKUP_DRIVE}/BackupManjaroDesktop"],
             dryRun,
             sourceDir: "/home/${USER}"
         },

@@ -45,6 +45,16 @@ const copyFilesPlugin: Plugin = {
                     throw Error(`The command '${copyFilesInstruction.command}' is not supported`);
                 }
 
+                // Resolve source dir path
+                const sourceDir = resolveVariableString(options.globals.variables, options.job.sourceDir);
+                if (Array.isArray(sourceDir)) {
+                    const errorMessage = `Source directory (${
+                        options.job.sourceDir}) resolved to more than one path:\n${
+                        JSON.stringify(sourceDir)}`;
+                    logs.push(createLogEntry(errorMessage, LogLevel.ERROR));
+                    throw Error(errorMessage);
+                }
+
                 // Resolve source file paths
                 let sourceFiles = resolveVariableString(options.globals.variables,
                     copyFilesInstruction.options.sourceFiles);
@@ -81,7 +91,7 @@ const copyFilesPlugin: Plugin = {
                     backupDirs = [backupDirs];
                 }
                 for (const backupDir of backupDirs) {
-                    if (copyFilesInstruction.options.delete) {
+                    if (copyFilesInstruction.options.deleteBackupDir) {
                         logs.push(createLogEntry(`Remove directory '${backupDir}'`));
                         if (!options.job.dryRun) {
                             await fs.rmdir(backupDir, { recursive: true });
@@ -99,7 +109,10 @@ const copyFilesPlugin: Plugin = {
 
                     for (const sourceFile of sourceFiles) {
                         try {
-                            const destFilePath = path.join(backupDir, path.relative(options.job.sourceDir, sourceFile));
+                            logs.push(createLogEntry(`What is this: '${
+                                path.relative(sourceDir, sourceFile)}', sourceDir='${
+                                sourceDir}', sourceFile='${sourceFile}'`));
+                            const destFilePath = path.join(backupDir, path.relative(sourceDir, sourceFile));
                             logs.push(createLogEntry(`Copy '${sourceFile}' to '${destFilePath}'`));
                             if (!options.job.dryRun) {
                                 await fsExtra.copy(sourceFile, destFilePath);

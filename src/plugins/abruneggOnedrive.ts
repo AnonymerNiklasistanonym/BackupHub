@@ -30,19 +30,15 @@ const abruneggOneDrivePlugin: Plugin = {
             const cliOptions: string[] = [];
             if (abruneggOneDriveInstruction.command === AbruneggOneDriveCommand.CUSTOM) {
                 // Set nothing
-                if (abruneggOneDriveInstruction.options.verbose === true) {
-                    cliOptions.push("--verbose");
-                }
-                if (abruneggOneDriveInstruction.options.verbose === true) {
-                    cliOptions.push("--download");
-                }
             } else if (abruneggOneDriveInstruction.command === AbruneggOneDriveCommand.SYNCHRONIZE) {
-                if (abruneggOneDriveInstruction.options.verbose !== false) {
-                    cliOptions.push("--verbose");
-                }
-                if (abruneggOneDriveInstruction.options.download === true) {
-                    cliOptions.push("--download");
-                }
+                // Set nothing
+            }
+
+            if (abruneggOneDriveInstruction.options.verbose === true) {
+                cliOptions.push("--verbose");
+            }
+            if (abruneggOneDriveInstruction.options.verbose === true) {
+                cliOptions.push("--download");
             }
 
             const output = await runShellCommand(shellCommand, cliOptions, {

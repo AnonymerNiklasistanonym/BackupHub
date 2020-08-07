@@ -22,7 +22,7 @@ export namespace CopyFiles {
         /**
          * Delete the previous backup
          */
-        delete?: boolean
+        deleteBackupDir?: boolean
     }
 
     export type PluginName = "CopyFiles";
