@@ -44,11 +44,13 @@
     "typedoc": "ts-node ./docs/createDocs"
   },
   "dependencies": {
-    "command-exists": "^1.2.9"
+    "command-exists": "^1.2.9",
+    "fs-extra": "^9.0.1"
   },
   "devDependencies": {
     "@types/chai": "^4.2.12",
     "@types/command-exists": "^1.2.0",
+    "@types/fs-extra": "^9.0.1",
     "@types/glob": "^7.1.3",
     "@types/mocha": "^8.0.1",
     "@types/node": "^14.0.27",

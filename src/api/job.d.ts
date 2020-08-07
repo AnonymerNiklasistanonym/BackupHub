@@ -8,8 +8,18 @@ export namespace Job {
     }
 
     export interface DefaultData {
+        /**
+         * The backup directories
+         */
         backupDirs: string[]
+        /**
+         * The source directory
+         */
         sourceDir: string
+        /**
+         * Run the job without actually performing any create/write/copy/... actions
+         */
+        dryRun?: boolean
     }
 
 }

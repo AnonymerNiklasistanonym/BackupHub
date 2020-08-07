@@ -2,6 +2,7 @@
 /* eslint-disable no-duplicate-imports */
 
 import abruneggOneDrive, { AbruneggOneDriveCommands } from "./plugins/abruneggOnedrive";
+import copyFiles, { CopyFilesCommand, CopyFiles } from "./plugins/copyFiles";
 import grive, { GriveCommands } from "./plugins/grive";
 import rsync, { RsyncCommand } from "./plugins/rsync";
 import type { AbruneggOneDrive } from "./plugins/abruneggOnedrive";
@@ -18,9 +19,10 @@ import type { Rsync } from "./plugins/rsync";
 
     console.log(backupHub.version);
 
-    console.log(logFormatter(await backupHub.addPlugin(rsync)));
     console.log(logFormatter(await backupHub.addPlugin(abruneggOneDrive)));
+    console.log(logFormatter(await backupHub.addPlugin(copyFiles)));
     console.log(logFormatter(await backupHub.addPlugin(grive)));
+    console.log(logFormatter(await backupHub.addPlugin(rsync)));
 
     backupHub.addGlobalVariable({
         description: "The external backup drives",
@@ -102,6 +104,28 @@ import type { Rsync } from "./plugins/rsync";
         name: "Backup OneDrive directory"
     });
     console.log(logFormatter(outputBackupGoogleDriveDir.log));
+
+    const outputCopyFiles = await backupHub.runJob({
+        data: {
+            backupDirs: ["${...BACKUP_DRIVE}/ManjaroDesktop"],
+            dryRun: false,
+            sourceDir: "/etc"
+        },
+        instructions: [
+            {
+                command: CopyFilesCommand.COPY,
+                options: {
+                    backupDirs: ["${...BACKUP_DIR}/host_files"],
+                    delete: true,
+                    glob: true,
+                    sourceFiles: ["${SOURCE_DIR}/hosts*"]
+                },
+                plugin: "CopyFiles"
+            } as CopyFiles.Instruction
+        ],
+        name: "Backup hosts files"
+    });
+    console.log(logFormatter(outputCopyFiles.log));
 
 })().catch(err => {
     console.error(err);
