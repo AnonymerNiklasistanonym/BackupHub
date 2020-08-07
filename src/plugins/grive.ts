@@ -46,7 +46,7 @@ const grivePlugin: Plugin = {
                 const googleDriveDir = resolveVariableString(options.globals.variables,
                     griveInstruction.options.googleDriveDir);
                 if (Array.isArray(googleDriveDir)) {
-                    const errorMessage = `Grive Plugin: Google Drive directory (${
+                    const errorMessage = `Google Drive directory (${
                         griveInstruction.options.googleDriveDir}) resolved to more than one path:\n${
                         JSON.stringify(googleDriveDir)}`;
                     logs.push(createLogEntry(errorMessage, LogLevel.ERROR));
@@ -64,7 +64,7 @@ const grivePlugin: Plugin = {
                     cwd: googleDriveDir,
                     dryRun: options.job.dryRun
                 });
-                logs.push(... output);
+                logs.push(... output.logs);
 
             } catch (err) {
                 const pluginError: PluginError = err as Error;

@@ -120,7 +120,7 @@ const rsyncPlugin: Plugin = {
                         [ ... cliArgs, backupDir ].map(cliArg => `'${cliArg}'`), {
                             dryRun: options.job.dryRun
                         });
-                    logs.push(... output);
+                    logs.push(... output.logs);
                 }
             } catch (err) {
                 const pluginError: PluginError = err as Error;

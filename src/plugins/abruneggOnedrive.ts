@@ -48,7 +48,7 @@ const abruneggOneDrivePlugin: Plugin = {
             const output = await runShellCommand(shellCommand, cliOptions, {
                 dryRun: options.job.dryRun
             });
-            logs.push(... output);
+            logs.push(... output.logs);
 
             return { log: logs };
         },

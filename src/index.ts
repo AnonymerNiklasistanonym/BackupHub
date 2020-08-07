@@ -4,12 +4,14 @@
 import abruneggOneDrive, { AbruneggOneDriveCommand } from "./plugins/abruneggOnedrive";
 import copyFiles, { CopyFilesCommand } from "./plugins/copyFiles";
 import grive, { GriveCommand } from "./plugins/grive";
+import pacman, { PacmanCommand } from "./plugins/pacman";
 import rsync, { RsyncCommand } from "./plugins/rsync";
 import type { AbruneggOneDrive } from "./plugins/abruneggOnedrive";
 import backupHub from "./api/backupHub";
 import type { CopyFiles } from "./plugins/copyFiles";
 import type { Grive } from "./plugins/grive";
 import { logFormatter } from "./api/helper/logFormatter";
+import type { Pacman } from "./plugins/pacman";
 import type { Rsync } from "./plugins/rsync";
 
 
@@ -22,6 +24,7 @@ import type { Rsync } from "./plugins/rsync";
     console.log(logFormatter(await backupHub.addPlugin(abruneggOneDrive)));
     console.log(logFormatter(await backupHub.addPlugin(copyFiles)));
     console.log(logFormatter(await backupHub.addPlugin(grive)));
+    console.log(logFormatter(await backupHub.addPlugin(pacman)));
     console.log(logFormatter(await backupHub.addPlugin(rsync)));
 
     // Add global (available in every job) variables:
@@ -134,6 +137,25 @@ import type { Rsync } from "./plugins/rsync";
         name: "Backup hosts files"
     });
     console.log(logFormatter(outputCopyFiles.log));
+
+    const outputPacmanBackup = await backupHub.runJob({
+        data: {
+            backupDirs: ["${...BACKUP_DRIVE}/ManjaroDesktop"],
+            dryRun,
+            sourceDir: "/home/${USER}"
+        },
+        instructions: [
+            {
+                command: PacmanCommand.GET_PACKAGE_LIST_JSON,
+                options: {
+                    jsonOutputFilePaths: ["${...BACKUP_DIR}/installed_programs_pacman_${USER}.json"]
+                },
+                plugin: "Pacman"
+            } as Pacman.Instruction
+        ],
+        name: "Backup installed programs from Pacman"
+    });
+    console.log(logFormatter(outputPacmanBackup.log));
 
 })().catch(err => {
     console.error(err);

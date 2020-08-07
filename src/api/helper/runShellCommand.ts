@@ -15,23 +15,27 @@ export interface RunShellCommandOptions {
 
 export const runShellCommand = async (
     cliCommand: string, cliArgs?: string[], options: RunShellCommandOptions = {}
-): Promise<Log.Entry[]> => {
+): Promise<{ logs: Log.Entry[]; output: string }> => {
     const logs: Log.Entry[] = [];
-
 
     let completeCommand = cliCommand;
     if (cliArgs !== undefined && cliArgs.length > 0) {
         completeCommand += ` ${cliArgs.join(" ")}`;
     }
 
-    logs.push(createLogEntry(`Start subprocess: "${completeCommand}"`));
+    let commandInfo = "";
+    if (options.cwd !== undefined) {
+        commandInfo += ` in '${options.cwd}'`;
+    }
+
+    logs.push(createLogEntry(`Start subprocess: "${completeCommand}"${commandInfo}`, LogLevel.DEBUG));
     if (options.dryRun) {
-        return logs;
+        return { logs, output: "" };
     }
     const subprocess = spawn(cliCommand, cliArgs, { cwd: options.cwd, shell: true });
 
     try {
-        await new Promise((resolve, reject) => {
+        const output = await new Promise<string>((resolve, reject) => {
             subprocess.on("error", err => {
                 logs.push(createLogEntry(`Failed to start subprocess: ${err.message}\n${JSON.stringify(err)}`,
                     LogLevel.ERROR));
@@ -50,13 +54,14 @@ export const runShellCommand = async (
             });
             subprocess.on("close", exitCode => {
                 logs.push(createLogEntry(`Command exit with ${exitCode} and the following output:\n${commandOutput}`,
-                    exitCode !== 0 ? LogLevel.ERROR : LogLevel.INFO));
+                    exitCode !== 0 ? LogLevel.ERROR : LogLevel.DEBUG));
                 if (exitCode !== 0) {
                     throw Error(`Process exited with the error code ${exitCode}`);
                 }
-                return resolve(logs);
+                return resolve(commandOutput);
             });
         });
+        return { logs, output };
     } catch (err) {
         debug(JSON.stringify(err));
         const pluginError: PluginError = err as Error;
@@ -64,5 +69,4 @@ export const runShellCommand = async (
         throw pluginError;
     }
 
-    return logs;
 };

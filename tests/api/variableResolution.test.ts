@@ -4,7 +4,7 @@ import { resolveVariableString } from "../../src/api/helper";
 
 
 export default (): Mocha.Suite => {
-    return describe("variableResolution [api]", () => {
+    return describe("variableResolution [helper]", () => {
         it("resolveVariableString", () => {
 
             chai.expect(resolveVariableString([
