@@ -2,10 +2,26 @@ import type { Config } from "../config";
 
 // eslint-disable-next-line complexity
 export const resolveVariableString = (
-    variables: Config.Globals.Variable[], content: string | string[]
+    variables: Config.Globals.Variable[], content: string | string[], depth = 0
 ): string | string[] => {
     let output: string | string[] = content;
     let noChange = true;
+
+    // Detect and stop circular dependencies
+    if (depth >= 999) {
+        throw Error("Variable resolving was stopped because there is probably a circular dependency (depth)");
+    } else {
+        if (Array.isArray(output)) {
+            if (output.find(a => a.length >= Math.pow(10, 4))) {
+                throw Error("Variable resolving was stopped because there is probably a circular dependency (length)");
+            }
+            if (output.length >= Math.pow(10, 3)) {
+                throw Error("Variable resolving was stopped because there is probably a circular dependency (count)");
+            }
+        } else if (output.length >= Math.pow(10, 4)) {
+            throw Error("Variable resolving was stopped because there is probably a circular dependency (length)");
+        }
+    }
 
     for (const variable of variables) {
 
@@ -89,5 +105,5 @@ export const resolveVariableString = (
     if (Array.isArray(output) && output.length === 1) {
         output = output[0];
     }
-    return noChange ? output : resolveVariableString(variables, output);
+    return noChange ? output : resolveVariableString(variables, output, depth + 1);
 };

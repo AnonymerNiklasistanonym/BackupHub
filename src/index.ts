@@ -2,28 +2,29 @@
 /* eslint-disable no-duplicate-imports */
 
 import abruneggOneDrive, { AbruneggOneDriveCommands } from "./plugins/abruneggOnedrive";
-import copyFiles, { CopyFilesCommand, CopyFiles } from "./plugins/copyFiles";
+import copyFiles, { CopyFilesCommand } from "./plugins/copyFiles";
 import grive, { GriveCommands } from "./plugins/grive";
 import rsync, { RsyncCommand } from "./plugins/rsync";
 import type { AbruneggOneDrive } from "./plugins/abruneggOnedrive";
 import backupHub from "./api/backupHub";
+import type { CopyFiles } from "./plugins/copyFiles";
 import type { Grive } from "./plugins/grive";
 import { logFormatter } from "./api/helper/logFormatter";
 import type { Rsync } from "./plugins/rsync";
 
-// Debug console
-// import { debuglog } from "util";
-// const debug = debuglog("app");
 
 (async (): Promise<void> => {
 
+    // Print program version
     console.log(backupHub.version);
 
+    // Add plugin: (if provided it runs checks to verify integrity)
     console.log(logFormatter(await backupHub.addPlugin(abruneggOneDrive)));
     console.log(logFormatter(await backupHub.addPlugin(copyFiles)));
     console.log(logFormatter(await backupHub.addPlugin(grive)));
     console.log(logFormatter(await backupHub.addPlugin(rsync)));
 
+    // Add global (available in every job) variables:
     backupHub.addGlobalVariable({
         description: "The external backup drives",
         name: "BACKUP_DRIVE",
