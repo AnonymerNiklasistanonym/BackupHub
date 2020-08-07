@@ -135,7 +135,9 @@ const rsyncPlugin: Plugin = {
                         }
                     }
                     const output = await runShellCommand(shellCommand,
-                        [ ... cliArgs, backupDir ].map(cliArg => `'${cliArg}'`));
+                        [ ... cliArgs, backupDir ].map(cliArg => `'${cliArg}'`), {
+                            dryRun: options.job.dryRun
+                        });
                     logs.push(... output);
                 }
             } catch (err) {

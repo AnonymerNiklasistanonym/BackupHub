@@ -1,13 +1,16 @@
-import { GriveCommands, runGrive } from "./grive/grive";
 import type { Log, Plugin } from "../api/backupHub";
 import commandExists from "command-exists";
 import type { Grive } from "./grive/types";
 import { resolveVariableString } from "../api/helper/resolveVariableString";
+import { runShellCommand } from "../api/helper";
 export type { Grive } from "./grive/types";
-export { GriveCommands } from "./grive/grive";
 
 
 export const pluginName = "Grive";
+export enum GriveCommand {
+    SYNCHRONIZE = "SYNCHRONIZE",
+    CUSTOM = "CUSTOM"
+}
 export const griveCommand = "grive";
 
 const grivePlugin: Plugin = {
@@ -19,9 +22,9 @@ const grivePlugin: Plugin = {
             const griveInstruction = instruction as Grive.Instruction;
 
             const cliOptions: string[] = [];
-            if (griveInstruction.command === GriveCommands.CUSTOM) {
+            if (griveInstruction.command === GriveCommand.CUSTOM) {
                 // Set nothing
-            } else if (griveInstruction.command === GriveCommands.SYNCHRONIZE) {
+            } else if (griveInstruction.command === GriveCommand.SYNCHRONIZE) {
                 // Nothing special right now
             }
             if (griveInstruction.options.progressBar === true) {
@@ -39,7 +42,10 @@ const grivePlugin: Plugin = {
                     JSON.stringify(googleDriveDir)}`);
             }
 
-            const output = await runGrive(griveCommand, cliOptions, googleDriveDir);
+            const output = await runShellCommand(griveCommand, cliOptions, {
+                cwd: googleDriveDir,
+                dryRun: options.job.dryRun
+            });
             logs.push(... output);
 
             return { log: logs };

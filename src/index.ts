@@ -1,9 +1,9 @@
 /* eslint-disable no-console */
 /* eslint-disable no-duplicate-imports */
 
-import abruneggOneDrive, { AbruneggOneDriveCommands } from "./plugins/abruneggOnedrive";
+import abruneggOneDrive, { AbruneggOneDriveCommand } from "./plugins/abruneggOnedrive";
 import copyFiles, { CopyFilesCommand } from "./plugins/copyFiles";
-import grive, { GriveCommands } from "./plugins/grive";
+import grive, { GriveCommand } from "./plugins/grive";
 import rsync, { RsyncCommand } from "./plugins/rsync";
 import type { AbruneggOneDrive } from "./plugins/abruneggOnedrive";
 import backupHub from "./api/backupHub";
@@ -35,9 +35,14 @@ import type { Rsync } from "./plugins/rsync";
         value: "niklas"
     });
 
+    // Job properties:
+    const dryRun = true;
+
+    // Jobs to execute:
     const outputBackupHomeDir = await backupHub.runJob({
         data: {
             backupDirs: ["${...BACKUP_DRIVE}/BackupManjaroDesktop/home_${USER}"],
+            dryRun,
             sourceDir: "/home/${USER}"
         },
         instructions: [
@@ -58,11 +63,12 @@ import type { Rsync } from "./plugins/rsync";
     const outputBackupOneDriveDir = await backupHub.runJob({
         data: {
             backupDirs: ["${...BACKUP_DRIVE}/Cloud/OneDrive (${USER} - latest)"],
+            dryRun,
             sourceDir: "/home/${USER}/OneDrive"
         },
         instructions: [
             {
-                command: AbruneggOneDriveCommands.SYNCHRONIZE,
+                command: AbruneggOneDriveCommand.SYNCHRONIZE,
                 options: {},
                 plugin: "AbruneggOneDrive"
             } as AbruneggOneDrive.Instruction,
@@ -83,11 +89,12 @@ import type { Rsync } from "./plugins/rsync";
     const outputBackupGoogleDriveDir = await backupHub.runJob({
         data: {
             backupDirs: ["${...BACKUP_DRIVE}/Cloud/GoogleDrive (${USER} - latest)"],
+            dryRun,
             sourceDir: "/home/${USER}/GoogleDrive"
         },
         instructions: [
             {
-                command: GriveCommands.SYNCHRONIZE,
+                command: GriveCommand.SYNCHRONIZE,
                 options: {
                     googleDriveDir: "${SOURCE_DIR}"
                 },
@@ -109,7 +116,7 @@ import type { Rsync } from "./plugins/rsync";
     const outputCopyFiles = await backupHub.runJob({
         data: {
             backupDirs: ["${...BACKUP_DRIVE}/ManjaroDesktop"],
-            dryRun: false,
+            dryRun,
             sourceDir: "/etc"
         },
         instructions: [

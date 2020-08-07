@@ -58,6 +58,7 @@ const copyFilesPlugin: Plugin = {
                         const globbedFiles = await new Promise<string[]>((resolve, reject) => {
                             logs.push(createLogEntry(`Glob command: '${globCommand}'`, LogLevel.DEBUG));
                             glob(globCommand, {
+                                absolute: true,
                                 cwd: copyFilesInstruction.options.cwd
                                     ? copyFilesInstruction.options.cwd : path.join(__dirname, "..", "..", "..")
                             }, (err, files) => {

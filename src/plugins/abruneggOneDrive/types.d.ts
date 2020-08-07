@@ -1,4 +1,4 @@
-import type { AbruneggOneDriveCommands } from "./abruneggOneDrive";
+import type { AbruneggOneDriveCommand } from "../abruneggOnedrive";
 import type { Instruction as ApiInstruction } from "../../api/instruction";
 
 
@@ -17,6 +17,6 @@ export namespace AbruneggOneDrive {
     export type PluginName = "AbruneggOneDrive";
 
     // eslint-disable-next-line @typescript-eslint/no-empty-interface
-    export interface Instruction extends ApiInstruction<AbruneggOneDriveCommands, Options, PluginName> {}
+    export interface Instruction extends ApiInstruction<AbruneggOneDriveCommand, Options, PluginName> {}
 
 }

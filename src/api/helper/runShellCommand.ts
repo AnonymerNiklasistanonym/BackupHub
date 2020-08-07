@@ -8,7 +8,14 @@ import { spawn } from "child_process";
 const debug = debuglog("app-helper-runShellCommand");
 const createLogEntry = createLogEntryGenerator(debug, "Helper:RunShellCommand");
 
-export const runShellCommand = async (cliCommand: string, cliArgs?: string[]): Promise<Log.Entry[]> => {
+export interface RunShellCommandOptions {
+    cwd?: string
+    dryRun?: boolean
+}
+
+export const runShellCommand = async (
+    cliCommand: string, cliArgs?: string[], options: RunShellCommandOptions = {}
+): Promise<Log.Entry[]> => {
     const logs: Log.Entry[] = [];
 
 
@@ -18,7 +25,10 @@ export const runShellCommand = async (cliCommand: string, cliArgs?: string[]): P
     }
 
     logs.push(createLogEntry(`Start subprocess: "${completeCommand}"`));
-    const subprocess = spawn(cliCommand, cliArgs, { shell: true });
+    if (options.dryRun) {
+        return logs;
+    }
+    const subprocess = spawn(cliCommand, cliArgs, { cwd: options.cwd, shell: true });
 
     try {
         await new Promise((resolve, reject) => {

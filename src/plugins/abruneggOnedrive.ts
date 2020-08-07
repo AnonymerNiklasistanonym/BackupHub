@@ -1,12 +1,15 @@
-import { AbruneggOneDriveCommands, runAbruneggOneDrive } from "./abruneggOneDrive/abruneggOneDrive";
 import type { Log, Plugin } from "../api/backupHub";
 import type { AbruneggOneDrive } from "./abruneggOneDrive/types";
 export type { AbruneggOneDrive } from "./abruneggOneDrive/types";
 import commandExists from "command-exists";
-export { AbruneggOneDriveCommands } from "./abruneggOneDrive/abruneggOneDrive";
+import { runShellCommand } from "../api/helper";
 
 
 export const pluginName = "AbruneggOneDrive";
+export enum AbruneggOneDriveCommand {
+    SYNCHRONIZE = "SYNCHRONIZE",
+    CUSTOM = "CUSTOM"
+}
 export const abruneggOneDriveCommand = "onedrive";
 
 const abruneggOneDrivePlugin: Plugin = {
@@ -18,7 +21,7 @@ const abruneggOneDrivePlugin: Plugin = {
             const abruneggOneDriveInstruction = instruction as AbruneggOneDrive.Instruction;
 
             const cliOptions: string[] = [];
-            if (abruneggOneDriveInstruction.command === AbruneggOneDriveCommands.CUSTOM) {
+            if (abruneggOneDriveInstruction.command === AbruneggOneDriveCommand.CUSTOM) {
                 // Set nothing
                 if (abruneggOneDriveInstruction.options.verbose === true) {
                     cliOptions.push("--verbose");
@@ -26,7 +29,7 @@ const abruneggOneDrivePlugin: Plugin = {
                 if (abruneggOneDriveInstruction.options.verbose === true) {
                     cliOptions.push("--download");
                 }
-            } else if (abruneggOneDriveInstruction.command === AbruneggOneDriveCommands.SYNCHRONIZE) {
+            } else if (abruneggOneDriveInstruction.command === AbruneggOneDriveCommand.SYNCHRONIZE) {
                 if (abruneggOneDriveInstruction.options.verbose !== false) {
                     cliOptions.push("--verbose");
                 }
@@ -35,7 +38,9 @@ const abruneggOneDrivePlugin: Plugin = {
                 }
             }
 
-            const output = await runAbruneggOneDrive(abruneggOneDriveCommand, cliOptions);
+            const output = await runShellCommand(abruneggOneDriveCommand, cliOptions, {
+                dryRun: options.job.dryRun
+            });
             logs.push(... output);
 
             return { log: logs };

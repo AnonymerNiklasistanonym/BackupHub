@@ -1,5 +1,5 @@
 import type { Instruction as ApiInstruction } from "../../api/instruction";
-import type { GriveCommands } from "./grive";
+import type { GriveCommand } from "../grive";
 
 
 export namespace Grive {
@@ -21,6 +21,6 @@ export namespace Grive {
     export type PluginName = "Grive";
 
     // eslint-disable-next-line @typescript-eslint/no-empty-interface
-    export interface Instruction extends ApiInstruction<GriveCommands, Options, PluginName> {}
+    export interface Instruction extends ApiInstruction<GriveCommand, Options, PluginName> {}
 
 }
