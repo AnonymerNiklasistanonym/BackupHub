@@ -92,6 +92,10 @@ This is only a personal solution for myself to not use a bash backup script whic
 
 ## Future Plans
 
+- Add plugins:
+  - gitlab (account)
+  - github (account - port [BackupGitHubRepos](https://github.com/AnonymerNiklasistanonym/BackupGitHubRepos))
+  - private git repos (pacman AUR repos with private key and password)
 - Create a JSON file parser to only pass a JSON configuration file to this program.
 - Make log levels important (currently they do not matter)
 - More tests
