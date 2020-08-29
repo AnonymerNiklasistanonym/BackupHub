@@ -3,12 +3,14 @@
 
 import abruneggOneDrive, { AbruneggOneDriveCommand } from "./plugins/abruneggOnedrive";
 import copyFiles, { CopyFilesCommand } from "./plugins/copyFiles";
+import github, { GitHubCommand } from "./plugins/github";
 import grive, { GriveCommand } from "./plugins/grive";
 import pacman, { PacmanCommand } from "./plugins/pacman";
 import rsync, { RsyncCommand } from "./plugins/rsync";
 import type { AbruneggOneDrive } from "./plugins/abruneggOnedrive";
 import backupHub from "./api/backupHub";
 import type { CopyFiles } from "./plugins/copyFiles";
+import type { GitHub } from "./plugins/github";
 import type { Grive } from "./plugins/grive";
 import { logFormatter } from "./api/helper/logFormatter";
 import type { Pacman } from "./plugins/pacman";
@@ -23,6 +25,7 @@ import type { Rsync } from "./plugins/rsync";
     // Add plugin: (if provided it runs checks to verify integrity)
     console.log(logFormatter(await backupHub.addPlugin(abruneggOneDrive)));
     console.log(logFormatter(await backupHub.addPlugin(copyFiles)));
+    console.log(logFormatter(await backupHub.addPlugin(github)));
     console.log(logFormatter(await backupHub.addPlugin(grive)));
     console.log(logFormatter(await backupHub.addPlugin(pacman)));
     console.log(logFormatter(await backupHub.addPlugin(rsync)));
@@ -182,6 +185,30 @@ import type { Rsync } from "./plugins/rsync";
         name: "Backup installed programs from Pacman"
     });
     console.log(logFormatter(outputPacmanBackup.log));
+
+    // const yourSecretGitHubApiAccountName = "INSERT_HERE";
+    // const yourSecretGitHubApiOauthToke = "INSERT_HERE";
+
+    // const outputGitHubBackup = await backupHub.runJob({
+    //     data: {
+    //         backupDirs: ["${...BACKUP_DRIVE}"],
+    //         dryRun,
+    //         sourceDir: "/home/${USER}"
+    //     },
+    //     instructions: [
+    //         {
+    //             command: GitHubCommand.BACKUP_REPOS,
+    //             options: {
+    //                 backupDirs: ["${...BACKUP_DIR}/BackupGitHubRepos_${USER}"],
+    //                 githubApiAccountName: yourSecretGitHubApiAccountName,
+    //                 githubApiOauthToken: yourSecretGitHubApiOauthToke
+    //             },
+    //             plugin: "GitHub"
+    //         } as GitHub.Instruction
+    //     ],
+    //     name: "Backup installed programs from Pacman"
+    // });
+    // console.log(logFormatter(outputGitHubBackup.log));
 
 })().catch(err => {
     console.error(err);
