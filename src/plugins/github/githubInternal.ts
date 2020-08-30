@@ -1,6 +1,16 @@
-import { exec } from "child_process";
+import {
+    createLogEntryGenerator, directoryExists, runShellCommand
+} from "../../api/helper";
+import { debuglog } from "util";
 import { promises as fs } from "fs";
+import { Log } from "../../api/log";
+import { LogLevel } from "../../api/logLevel";
 import path from "path";
+import { pluginName } from "../github";
+
+
+const debug = debuglog("app-plugin-github-internal");
+const createLogEntry = createLogEntryGenerator(debug, pluginName);
 
 
 export interface GitHubRepoInfo {
@@ -19,51 +29,37 @@ interface CodeOutput {
     stderr: string
 }
 
-const isDirectory = async (dirPath: string): Promise<boolean> => {
-    try {
-        const stat = await fs.lstat(dirPath);
-        return stat.isDirectory();
-    } catch (e) {
-        return false;
-    }
-};
-
-const runCliCommand = async (
-    command: string, cwd: string, dryRun = false
-): Promise<CodeOutput> => new Promise<CodeOutput>((resolve, reject) => {
-    if (dryRun) {
-        return resolve({ command, cwd, stderr: "", stdout: "" });
-    }
-    exec(command, { cwd }, (err, stdout, stderr) => {
-        if (err) {
-            return reject(err);
-        }
-        resolve({ command, cwd, stderr, stdout });
-    });
-});
-
 const gitCloneRepo = async (
     token: string, repoDir: string, repoFullName: string, dryRun = false
-): Promise<CodeOutput[]> => {
-    const codeOutputs: CodeOutput[] = [];
+): Promise<Log.Entry[]> => {
+    const codeOutputs: Log.Entry[] = [];
+    codeOutputs.push(createLogEntry(`Create directory "${repoDir}"`, LogLevel.DEBUG));
     if (dryRun !== true) {
         await fs.mkdir(repoDir, { recursive: true });
     }
-    codeOutputs.push({ command: `mkdir -p ${repoDir}`, stderr: "", stdout: "" });
-    codeOutputs.push(await runCliCommand(`git clone "https://${token}@github.com/${repoFullName}.git" "${repoDir}"`,
-        path.dirname(repoDir), dryRun));
-    codeOutputs.push(await runCliCommand("git fetch --all", repoDir, dryRun));
-    codeOutputs.push(await runCliCommand("git pull --all", repoDir, dryRun));
+    codeOutputs.push(... (await runShellCommand("git", [
+        "clone", `https://${token}@github.com/${repoFullName}.git`, repoDir
+    ], { cwd: path.dirname(repoDir), dryRun })).logs);
+    codeOutputs.push(... (await runShellCommand("git", [
+        "fetch", "--all"
+    ], { cwd: path.dirname(repoDir), dryRun })).logs);
+    codeOutputs.push(... (await runShellCommand("git", [
+        "pull", "--all"
+    ], { cwd: path.dirname(repoDir), dryRun })).logs);
     return codeOutputs;
 };
 
 const gitUpdateRepo = async (
     token: string, repoDir: string, repoFullName: string, dryRun = false
-): Promise<CodeOutput[]> => {
+): Promise<Log.Entry[]> => {
     try {
-        const codeOutputs: CodeOutput[] = [];
-        codeOutputs.push(await runCliCommand("git fetch --all", repoDir, dryRun));
-        codeOutputs.push(await runCliCommand("git pull --all", repoDir, dryRun));
+        const codeOutputs: Log.Entry[] = [];
+        codeOutputs.push(... (await runShellCommand("git", [
+            "fetch", "--all"
+        ], { cwd: path.dirname(repoDir), dryRun })).logs);
+        codeOutputs.push(... (await runShellCommand("git", [
+            "pull", "--all"
+        ], { cwd: path.dirname(repoDir), dryRun })).logs);
         return codeOutputs;
     } catch (updateError) {
         if (dryRun !== true) {
@@ -75,36 +71,26 @@ const gitUpdateRepo = async (
 
 export const gitBackupRepo = async (
     repoDir: string, token: string, repoFullName: string, dryRun = false
-): Promise<CodeOutput[]> => {
-    if (await isDirectory(path.join(repoDir, ".git"))) {
+): Promise<Log.Entry[]> => {
+    const codeOutputs: Log.Entry[] = [];
+    codeOutputs.push(createLogEntry(`Create directory "${repoDir}"`, LogLevel.DEBUG));
+    if (await directoryExists(path.join(repoDir, ".git"))) {
         try {
-            return await gitUpdateRepo(token, repoDir, repoFullName, dryRun);
+            codeOutputs.push(... await gitUpdateRepo(token, repoDir, repoFullName, dryRun));
+            return codeOutputs;
         } catch (updateError) {
             throw updateError;
         }
     } else {
         try {
-            return await gitCloneRepo(token, repoDir, repoFullName, dryRun);
+            codeOutputs.push(... await gitCloneRepo(token, repoDir, repoFullName, dryRun));
+            return codeOutputs;
         } catch (cloneError) {
+            codeOutputs.push(createLogEntry(`Remove directory "${repoDir}"`, LogLevel.DEBUG));
             if (dryRun !== true) {
                 await fs.rmdir(repoDir, { recursive: true });
             }
             throw cloneError;
         }
     }
-};
-
-export const getCodeOutputString = (codeOutput: CodeOutput) => {
-    let stringBuilder = ">> ";
-    if (codeOutput.cwd) {
-        stringBuilder += `(${codeOutput.cwd})\n   `;
-    }
-    stringBuilder += `${codeOutput.command}`;
-    if (codeOutput.stdout && codeOutput.stdout.length > 0) {
-        stringBuilder += `\n   [stdout] ${codeOutput.stdout.trimEnd()}`;
-    }
-    if (codeOutput.stderr && codeOutput.stderr.length > 0) {
-        stringBuilder += `\n   [stderr] ${codeOutput.stderr.trimEnd()}`;
-    }
-    return stringBuilder;
 };

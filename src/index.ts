@@ -13,6 +13,7 @@ import type { CopyFiles } from "./plugins/copyFiles";
 import type { GitHub } from "./plugins/github";
 import type { Grive } from "./plugins/grive";
 import { logFormatter } from "./api/helper/logFormatter";
+import { LogLevel } from "./api/logLevel";
 import type { Pacman } from "./plugins/pacman";
 import type { Rsync } from "./plugins/rsync";
 
@@ -22,13 +23,17 @@ import type { Rsync } from "./plugins/rsync";
     // Print program version
     console.log(backupHub.version);
 
+    // Global run properties:
+    const dryRun = true;
+    const logLevel = LogLevel.INFO;
+
     // Add plugin: (if provided it runs checks to verify integrity)
-    console.log(logFormatter(await backupHub.addPlugin(abruneggOneDrive)));
-    console.log(logFormatter(await backupHub.addPlugin(copyFiles)));
-    console.log(logFormatter(await backupHub.addPlugin(github)));
-    console.log(logFormatter(await backupHub.addPlugin(grive)));
-    console.log(logFormatter(await backupHub.addPlugin(pacman)));
-    console.log(logFormatter(await backupHub.addPlugin(rsync)));
+    console.log(logFormatter(await backupHub.addPlugin(abruneggOneDrive), logLevel));
+    console.log(logFormatter(await backupHub.addPlugin(copyFiles), logLevel));
+    console.log(logFormatter(await backupHub.addPlugin(github), logLevel));
+    console.log(logFormatter(await backupHub.addPlugin(grive), logLevel));
+    console.log(logFormatter(await backupHub.addPlugin(pacman), logLevel));
+    console.log(logFormatter(await backupHub.addPlugin(rsync), logLevel));
 
     // Add global (available in every job) variables:
     backupHub.addGlobalVariable({
@@ -40,9 +45,6 @@ import type { Rsync } from "./plugins/rsync";
         name: "USER",
         value: "niklas"
     });
-
-    // Job properties:
-    const dryRun = true;
 
     // Jobs to execute:
     const outputBackupHomeDir = await backupHub.runJob({
@@ -64,7 +66,7 @@ import type { Rsync } from "./plugins/rsync";
         ],
         name: "Backup home directory"
     });
-    console.log(logFormatter(outputBackupHomeDir.log));
+    console.log(logFormatter(outputBackupHomeDir.log, logLevel));
 
     const outputBackupOneDriveDir = await backupHub.runJob({
         data: {
@@ -89,7 +91,7 @@ import type { Rsync } from "./plugins/rsync";
         ],
         name: "Backup OneDrive directory"
     });
-    console.log(logFormatter(outputBackupOneDriveDir.log));
+    console.log(logFormatter(outputBackupOneDriveDir.log, logLevel));
 
     const outputBackupGoogleDriveDir = await backupHub.runJob({
         data: {
@@ -116,7 +118,7 @@ import type { Rsync } from "./plugins/rsync";
         ],
         name: "Backup OneDrive directory"
     });
-    console.log(logFormatter(outputBackupGoogleDriveDir.log));
+    console.log(logFormatter(outputBackupGoogleDriveDir.log, logLevel));
 
     const outputCopyFiles = await backupHub.runJob({
         data: {
@@ -138,7 +140,7 @@ import type { Rsync } from "./plugins/rsync";
         ],
         name: "Backup hosts files"
     });
-    console.log(logFormatter(outputCopyFiles.log));
+    console.log(logFormatter(outputCopyFiles.log, logLevel));
 
     const outputCopyFilesVscodeSettings = await backupHub.runJob({
         data: {
@@ -165,7 +167,7 @@ import type { Rsync } from "./plugins/rsync";
         ],
         name: "Backup VSCode setting files"
     });
-    console.log(logFormatter(outputCopyFilesVscodeSettings.log));
+    console.log(logFormatter(outputCopyFilesVscodeSettings.log, logLevel));
 
     const outputPacmanBackup = await backupHub.runJob({
         data: {
@@ -184,7 +186,7 @@ import type { Rsync } from "./plugins/rsync";
         ],
         name: "Backup installed programs from Pacman"
     });
-    console.log(logFormatter(outputPacmanBackup.log));
+    console.log(logFormatter(outputPacmanBackup.log, logLevel));
 
     // const yourSecretGitHubApiAccountName = "INSERT_HERE";
     // const yourSecretGitHubApiOauthToke = "INSERT_HERE";
@@ -206,9 +208,9 @@ import type { Rsync } from "./plugins/rsync";
     //             plugin: "GitHub"
     //         } as GitHub.Instruction
     //     ],
-    //     name: "Backup installed programs from Pacman"
+    //     name: "Backup GitHub account connected repositories"
     // });
-    // console.log(logFormatter(outputGitHubBackup.log));
+    // console.log(logFormatter(outputGitHubBackup.log, logLevel));
 
 })().catch(err => {
     console.error(err);

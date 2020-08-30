@@ -2,10 +2,8 @@ import {
     checkAndCreateBackupDir, commandCanBeFound, createLogEntryGenerator,
     resolveVariableString
 } from "../api/helper";
-import {
-    getCodeOutputString, gitBackupRepo
-} from "./github/githubInternal";
 import { debuglog } from "util";
+import { gitBackupRepo } from "./github/githubInternal";
 import type { GitHub } from "./github/types";
 export type { GitHub } from "./github/types";
 // eslint-disable-next-line no-duplicate-imports
@@ -69,9 +67,8 @@ const gitHubPlugin: Plugin = {
                     octokitRequestInfo.page++;
                     emptyOrNotFullResults = repoData.length === 0 || repoData.length < octokitRequestInfo.per_page;
                 } while (!emptyOrNotFullResults);
-                // eslint-disable-next-line no-console
-                console.info(`${repositories.length} repositories from the account '${owner}' were found:`);
-
+                logs.push(createLogEntry(`${repositories.length} repositories from the account '${
+                    owner}' were found`, LogLevel.DEBUG));
 
                 // Resolve backup directories
                 let backupDirs = resolveVariableString(options.globals.variables,
@@ -94,21 +91,19 @@ const gitHubPlugin: Plugin = {
                         logs.push(createLogEntry(`(${index + 1}/${repositories.length}) Backup repo '${
                             repo.full_name}'...`));
                         const codeOutput = await gitBackupRepo(repoDir, token, repo.full_name, options.job.dryRun);
-                        codeOutput.forEach(codeOutputPart => {
-                            logs.push(createLogEntry(getCodeOutputString(codeOutputPart)));
-                        });
+                        logs.push(... codeOutput);
                         // Try to clone the wiki (when enabled)
                         if (repo.has_wiki) {
                             try {
-                                logs.push(createLogEntry(`Try to backup wiki repo '${repo.full_name}.wiki'...`));
+                                logs.push(createLogEntry(`Try to backup wiki repo '${repo.full_name}.wiki'...`,
+                                    LogLevel.DEBUG));
                                 const repoWikiDir = path.join(backupDir, repo.owner.login, `${repo.name}_wiki`);
                                 const codeOutputWiki = await gitBackupRepo(repoWikiDir, token, `${
                                     repo.full_name}.wiki`, options.job.dryRun);
-                                codeOutputWiki.forEach(codeOutputPart => {
-                                    logs.push(createLogEntry(getCodeOutputString(codeOutputPart)));
-                                });
+                                logs.push(... codeOutputWiki);
                             } catch (error) {
-                                logs.push(createLogEntry(`>> No wiki found ('${repo.full_name}.wiki')`));
+                                logs.push(createLogEntry(`>> No wiki found ('${repo.full_name}.wiki')`,
+                                    LogLevel.DEBUG));
                             }
                         }
                     }));
