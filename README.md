@@ -90,11 +90,29 @@ This is only a personal solution for myself to not use a bash backup script whic
 
 - New instructions can easily be added and then combined as can be seen in the directory [`src/plugins`](src/plugins)
 
+## Plugin Instructions
+
+### GitHub
+
+To use this plugin to update your connected repositories create a GitHub access token with full `repo` level to access (to only clone and update) private repositories.
+This information needs to be added to the command instructions, but be sure to keep this information private:
+
+```ts
+const gitubInstruction = {
+	command: GitHubCommand.BACKUP_REPOS,
+		options: {
+			backupDirs: ["${...BACKUP_DIR}/Xyz"],
+			githubApiAccountName: yourSecretGitHubApiAccountName,
+			githubApiOauthToken: yourSecretGitHubApiOauthToke
+		},
+		plugin: "GitHub"
+} as GitHub.Instruction
+```
+
 ## Future Plans
 
 - Add plugins:
   - gitlab (account)
-  - github (account - port [BackupGitHubRepos](https://github.com/AnonymerNiklasistanonym/BackupGitHubRepos))
   - private git repos (pacman AUR repos with private key and password)
 - Create a JSON file parser to only pass a JSON configuration file to this program.
 - Make log levels important (currently they do not matter)
