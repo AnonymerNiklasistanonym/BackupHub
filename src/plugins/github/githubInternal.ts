@@ -42,10 +42,10 @@ const gitCloneRepo = async (
     ], { cwd: path.dirname(repoDir), dryRun })).logs);
     codeOutputs.push(... (await runShellCommand("git", [
         "fetch", "--all"
-    ], { cwd: path.dirname(repoDir), dryRun })).logs);
+    ], { cwd: repoDir, dryRun })).logs);
     codeOutputs.push(... (await runShellCommand("git", [
         "pull", "--all"
-    ], { cwd: path.dirname(repoDir), dryRun })).logs);
+    ], { cwd: repoDir, dryRun })).logs);
     return codeOutputs;
 };
 
@@ -56,10 +56,10 @@ const gitUpdateRepo = async (
         const codeOutputs: Log.Entry[] = [];
         codeOutputs.push(... (await runShellCommand("git", [
             "fetch", "--all"
-        ], { cwd: path.dirname(repoDir), dryRun })).logs);
+        ], { cwd: repoDir, dryRun })).logs);
         codeOutputs.push(... (await runShellCommand("git", [
             "pull", "--all"
-        ], { cwd: path.dirname(repoDir), dryRun })).logs);
+        ], { cwd: repoDir, dryRun })).logs);
         return codeOutputs;
     } catch (updateError) {
         if (dryRun !== true) {

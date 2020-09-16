@@ -87,7 +87,7 @@ const rsyncPlugin: Plugin = {
                         } catch (err) {
                             throw err;
                         }
-                        cliArgs.push(... files.map(a => `--exclude-from=${a}`));
+                        cliArgs.push(... files.map(file => `--exclude-from=${file}`));
                     }
                 }
 
@@ -117,7 +117,7 @@ const rsyncPlugin: Plugin = {
                         continue;
                     }
                     const output = await runShellCommand(shellCommand,
-                        [ ... cliArgs, backupDir ].map(cliArg => `'${cliArg}'`), {
+                        [ ... cliArgs, backupDir ], {
                             dryRun: options.job.dryRun
                         });
                     logs.push(... output.logs);

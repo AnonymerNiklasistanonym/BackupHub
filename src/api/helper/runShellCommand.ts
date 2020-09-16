@@ -20,6 +20,7 @@ export const runShellCommand = async (
 
     let completeCommand = cliCommand;
     if (cliArgs !== undefined && cliArgs.length > 0) {
+        cliArgs = cliArgs.map(cliArg => `'${cliArg}'`);
         completeCommand += ` ${cliArgs.join(" ")}`;
     }
 
@@ -56,7 +57,9 @@ export const runShellCommand = async (
                 logs.push(createLogEntry(`Command exit with ${exitCode} and the following output:\n${commandOutput}`,
                     exitCode !== 0 ? LogLevel.ERROR : LogLevel.DEBUG));
                 if (exitCode !== 0) {
-                    throw Error(`Process exited with the error code ${exitCode}`);
+                    const processExitError: PluginError = Error(`Process exited with the error code ${exitCode}`);
+                    processExitError.logs = logs;
+                    throw processExitError;
                 }
                 return resolve(commandOutput);
             });
