@@ -37,15 +37,19 @@ const gitCloneRepo = async (
     if (dryRun !== true) {
         await fs.mkdir(repoDir, { recursive: true });
     }
-    codeOutputs.push(... (await runShellCommand("git", [
-        "clone", `https://${token}@github.com/${repoFullName}.git`, repoDir
-    ], { cwd: path.dirname(repoDir), dryRun })).logs);
-    codeOutputs.push(... (await runShellCommand("git", [
-        "fetch", "--all"
-    ], { cwd: repoDir, dryRun })).logs);
-    codeOutputs.push(... (await runShellCommand("git", [
-        "pull", "--all"
-    ], { cwd: repoDir, dryRun })).logs);
+    try {
+        codeOutputs.push(... (await runShellCommand("git", [
+            "clone", `https://${token}@github.com/${repoFullName}.git`, repoDir
+        ], { cwd: path.dirname(repoDir), dryRun })).logs);
+        codeOutputs.push(... (await runShellCommand("git", [
+            "fetch", "--all"
+        ], { cwd: repoDir, dryRun })).logs);
+        codeOutputs.push(... (await runShellCommand("git", [
+            "pull", "--all"
+        ], { cwd: repoDir, dryRun })).logs);
+    } catch (error) {
+        throw error;
+    }
     return codeOutputs;
 };
 

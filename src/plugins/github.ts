@@ -102,6 +102,7 @@ const gitHubPlugin: Plugin = {
                                     repo.full_name}.wiki`, options.job.dryRun);
                                 logs.push(... codeOutputWiki);
                             } catch (error) {
+                                // Don't crash if the wiki was not found because the api says every repo has a wiki
                                 logs.push(createLogEntry(`>> No wiki found ('${repo.full_name}.wiki')`,
                                     LogLevel.DEBUG));
                             }

@@ -7,6 +7,7 @@ interface FsStatError extends Error {
 /* eslint-disable @typescript-eslint/require-await */
 export const fileExists = async (filePath: string): Promise<boolean> => {
     try {
+        await fs.access(filePath);
         const stat = await fs.stat(filePath);
         return stat.isFile();
     } catch (err) {
@@ -19,6 +20,7 @@ export const fileExists = async (filePath: string): Promise<boolean> => {
 
 export const directoryExists = async (directoryPath: string): Promise<boolean> => {
     try {
+        await fs.access(directoryPath);
         const stat = await fs.stat(directoryPath);
         return stat.isDirectory();
     } catch (err) {
