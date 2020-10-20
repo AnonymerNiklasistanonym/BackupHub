@@ -62,8 +62,7 @@ export class BackupHup {
         this.methods.push(method);
     }
 
-    // eslint-disable-next-line @typescript-eslint/require-await
-    public async runJob<JOB_DATA> (job: Job): Promise<Job.Output> {
+    public async runJob (job: Job): Promise<Job.Output> {
         const logs: Log.Entry[] = [];
 
         for (const instruction of job.instructions) {

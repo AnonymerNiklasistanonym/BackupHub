@@ -6,5 +6,10 @@ import type { Grive } from "../plugins/grive";
 import type { Pacman } from "../plugins/pacman";
 import type { Rsync } from "../plugins/rsync";
 
-export type PluginList = Rsync.PluginName | AbruneggOneDrive.PluginName | GitHub.PluginName | GitLab.PluginName | Grive.PluginName |
-CopyFiles.PluginName | Pacman.PluginName;
+export type PluginList = Rsync.PluginName
+| AbruneggOneDrive.PluginName
+| GitHub.PluginName
+| GitLab.PluginName
+| Grive.PluginName
+| CopyFiles.PluginName
+| Pacman.PluginName;

@@ -87,7 +87,7 @@ const rsyncPlugin: Plugin = {
                         } catch (err) {
                             throw err;
                         }
-                        cliArgs.push(... files.map(file => `--exclude-from=${file}`));
+                        cliArgs.push(... files.map(singleFile => `--exclude-from=${singleFile}`));
                     }
                 }
 
