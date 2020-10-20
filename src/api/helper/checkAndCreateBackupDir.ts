@@ -24,7 +24,12 @@ export const checkAndCreateBackupDir = async (
             logs.push(createLogEntry(`Try to create the directory: "${backupDir}"`, LogLevel.INFO));
             if (!options.dryRun) {
                 await fs.mkdir(backupDir, { recursive: true });
-                logs.push(createLogEntry(`The directory "${backupDir}" was created`, LogLevel.INFO));
+                if (await directoryExists(backupDir)) {
+                    logs.push(createLogEntry(`The directory "${backupDir}" was created`, LogLevel.INFO));
+                } else {
+                    logs.push(createLogEntry(`The directory "${backupDir}" could not be created`, LogLevel.WARNING));
+                    return { exists: false, logs };
+                }
             }
         } catch (err) {
             logs.push(createLogEntry(`The directory "${backupDir}" could not be created`, LogLevel.WARNING));

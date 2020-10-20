@@ -44,6 +44,7 @@
     "typedoc": "ts-node ./docs/createDocs"
   },
   "dependencies": {
+    "@gitbeaker/node": "^25.0.0",
     "@octokit/rest": "^18.0.4",
     "command-exists": "^1.2.9",
     "fs-extra": "^9.0.1"

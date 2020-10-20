@@ -1,21 +1,31 @@
 /* eslint-disable no-console */
 /* eslint-disable no-duplicate-imports */
 
+import * as path from "path";
 import abruneggOneDrive, { AbruneggOneDriveCommand } from "./plugins/abruneggOnedrive";
 import copyFiles, { CopyFilesCommand } from "./plugins/copyFiles";
 import github, { GitHubCommand } from "./plugins/github";
+import gitlab, { GitLabCommand } from "./plugins/gitlab";
 import grive, { GriveCommand } from "./plugins/grive";
 import pacman, { PacmanCommand } from "./plugins/pacman";
 import rsync, { RsyncCommand } from "./plugins/rsync";
 import type { AbruneggOneDrive } from "./plugins/abruneggOnedrive";
 import backupHub from "./api/backupHub";
 import type { CopyFiles } from "./plugins/copyFiles";
+import { promises as fs } from "fs";
 import type { GitHub } from "./plugins/github";
+import type { GitLab } from "./plugins/gitlab";
 import type { Grive } from "./plugins/grive";
 import { logFormatter } from "./api/helper/logFormatter";
 import { LogLevel } from "./api/logLevel";
 import type { Pacman } from "./plugins/pacman";
+import type { PluginError } from "./api/error";
 import type { Rsync } from "./plugins/rsync";
+
+
+// Global run properties:
+const dryRun = true;
+const logLevel = LogLevel.INFO;
 
 
 (async (): Promise<void> => {
@@ -23,14 +33,11 @@ import type { Rsync } from "./plugins/rsync";
     // Print program version
     console.log(backupHub.version);
 
-    // Global run properties:
-    const dryRun = true;
-    const logLevel = LogLevel.INFO;
-
     // Add plugin: (if provided it runs checks to verify integrity)
     console.log(logFormatter(await backupHub.addPlugin(abruneggOneDrive), logLevel));
     console.log(logFormatter(await backupHub.addPlugin(copyFiles), logLevel));
     console.log(logFormatter(await backupHub.addPlugin(github), logLevel));
+    console.log(logFormatter(await backupHub.addPlugin(gitlab), logLevel));
     console.log(logFormatter(await backupHub.addPlugin(grive), logLevel));
     console.log(logFormatter(await backupHub.addPlugin(pacman), logLevel));
     console.log(logFormatter(await backupHub.addPlugin(rsync), logLevel));
@@ -39,7 +46,7 @@ import type { Rsync } from "./plugins/rsync";
     backupHub.addGlobalVariable({
         description: "The external backup drives",
         name: "BACKUP_DRIVE",
-        value: [ "/run/media/${USER}/Backup 4TB", "/run/media/${USER}/Backup #1" ]
+        value: [ "/run/media/${USER}/Backup 4TB", "/run/media/${USER}/Backup #1", "/home/niklas/backup_home_directory" ]
     });
     backupHub.addGlobalVariable({
         name: "USER",
@@ -58,7 +65,7 @@ import type { Rsync } from "./plugins/rsync";
                 command: RsyncCommand.SYNCHRONIZE,
                 options: {
                     backupDirs: ["${...BACKUP_DIR}/"],
-                    excludeFrom: ["/home/${USER}/Documents/github/BackupScriptsLinux/rsync_exclude_list.txt"],
+                    excludeFrom: [path.join(__dirname, "..", "example_rsync_exclude_list.txt")],
                     sourceDir: "${SOURCE_DIR}/"
                 },
                 plugin: "Rsync"
@@ -97,7 +104,7 @@ import type { Rsync } from "./plugins/rsync";
         data: {
             backupDirs: ["${...BACKUP_DRIVE}/Cloud/GoogleDrive (${USER} - latest)"],
             dryRun,
-            sourceDir: "/home/${USER}/GoogleDrive"
+            sourceDir: "/home/${USER}/Documents/GoogleDrive"
         },
         instructions: [
             {
@@ -188,31 +195,75 @@ import type { Rsync } from "./plugins/rsync";
     });
     console.log(logFormatter(outputPacmanBackup.log, logLevel));
 
-    // const yourSecretGitHubApiAccountName = "INSERT_HERE";
-    // const yourSecretGitHubApiOauthToke = "INSERT_HERE";
+    const githubCredentialsExist = false;
+    if (githubCredentialsExist) {
+        interface GitHubApiCredentials {
+            accountName: string
+            oauthToken: string
+        }
+        const githubApiCredentials = await JSON.parse((
+            await fs.readFile("github_credentials.json")).toString()) as GitHubApiCredentials;
 
-    // const outputGitHubBackup = await backupHub.runJob({
-    //     data: {
-    //         backupDirs: ["${...BACKUP_DRIVE}"],
-    //         dryRun,
-    //         sourceDir: "/home/${USER}"
-    //     },
-    //     instructions: [
-    //         {
-    //             command: GitHubCommand.BACKUP_REPOS,
-    //             options: {
-    //                 backupDirs: ["${...BACKUP_DIR}/BackupGitHubRepos_${USER}"],
-    //                 githubApiAccountName: yourSecretGitHubApiAccountName,
-    //                 githubApiOauthToken: yourSecretGitHubApiOauthToke
-    //             },
-    //             plugin: "GitHub"
-    //         } as GitHub.Instruction
-    //     ],
-    //     name: "Backup GitHub account connected repositories"
-    // });
-    // console.log(logFormatter(outputGitHubBackup.log, logLevel));
+        const outputGitHubBackup = await backupHub.runJob({
+            data: {
+                backupDirs: ["${...BACKUP_DRIVE}"],
+                dryRun,
+                sourceDir: "/home/${USER}"
+            },
+            instructions: [
+                {
+                    command: GitHubCommand.BACKUP_REPOS,
+                    options: {
+                        backupDirs: ["${...BACKUP_DIR}/BackupGitHubRepos_${USER}"],
+                        githubApiAccountName: githubApiCredentials.accountName,
+                        githubApiOauthToken: githubApiCredentials.oauthToken
+                    },
+                    plugin: "GitHub"
+                } as GitHub.Instruction
+            ],
+            name: "Backup GitHub account connected repositories"
+        });
+        console.log(logFormatter(outputGitHubBackup.log, logLevel));
+    }
+
+    const gitlabCredentialsExist = false;
+    if (gitlabCredentialsExist) {
+        interface GitLabApiCredentials {
+            accountName: string
+            hostUrl: string
+            oauthToken: string
+        }
+        const gitlabApiCredentials = await JSON.parse((
+            await fs.readFile("gitlab_credentials.json")).toString()) as GitLabApiCredentials;
+
+        const outputGitLabBackup = await backupHub.runJob({
+            data: {
+                backupDirs: ["${...BACKUP_DRIVE}"],
+                dryRun,
+                sourceDir: "/home/${USER}"
+            },
+            instructions: [
+                {
+                    command: GitLabCommand.BACKUP_REPOS,
+                    options: {
+                        backupDirs: ["${...BACKUP_DIR}/BackupGitLabRepos_${USER}"],
+                        gitlabApiAccountName: gitlabApiCredentials.accountName,
+                        gitlabApiHostUrl: gitlabApiCredentials.hostUrl,
+                        gitlabApiOauthToken: gitlabApiCredentials.oauthToken
+                    },
+                    plugin: "GitLab"
+                } as GitLab.Instruction
+            ],
+            name: "Backup GitLab account connected repositories"
+        });
+        console.log(logFormatter(outputGitLabBackup.log, logLevel));
+    }
 
 })().catch(err => {
     console.error(err);
+    const errorLogs = (err as PluginError).logs;
+    if (errorLogs) {
+        console.log(logFormatter(errorLogs, logLevel));
+    }
     process.exit(1);
 });

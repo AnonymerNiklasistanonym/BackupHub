@@ -15,7 +15,7 @@ export class BackupHup {
     private variables: Config.Globals.Variable[] = [];
     private methods: Config.Globals.Method<any[], any>[] = [];
 
-    public version = "1.0.0";
+    public version = "1.0.1";
 
     // eslint-disable-next-line @typescript-eslint/require-await
     public async addPlugin (plugin: Plugin): Promise<Log.Entry[]> {

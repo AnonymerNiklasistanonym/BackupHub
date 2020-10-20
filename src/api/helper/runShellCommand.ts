@@ -33,9 +33,10 @@ export const runShellCommand = async (
     if (options.dryRun) {
         return { logs, output: "" };
     }
-    const subprocess = spawn(cliCommand, cliArgs, { cwd: options.cwd, shell: true });
 
     try {
+        const subprocess = spawn(cliCommand, cliArgs, { cwd: options.cwd, shell: true });
+
         const output = await new Promise<string>((resolve, reject) => {
             subprocess.on("error", err => {
                 logs.push(createLogEntry(`Failed to start subprocess: ${err.message}\n${JSON.stringify(err)}`,
@@ -61,6 +62,8 @@ export const runShellCommand = async (
                 }
                 return resolve(commandOutput);
             });
+        }).catch(err => {
+            throw err;
         });
         return { logs, output };
     } catch (err) {

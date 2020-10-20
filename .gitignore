@@ -8,3 +8,5 @@ coverage
 *.db-journal
 keys
 *.log
+github_credentials.json
+gitlab_credentials.json

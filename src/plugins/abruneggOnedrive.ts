@@ -31,6 +31,7 @@ const abruneggOneDrivePlugin: Plugin = {
             if (abruneggOneDriveInstruction.command === AbruneggOneDriveCommand.CUSTOM) {
                 // Set nothing
             } else if (abruneggOneDriveInstruction.command === AbruneggOneDriveCommand.SYNCHRONIZE) {
+                cliOptions.push("--synchronize");
                 // Set nothing
             }
 
