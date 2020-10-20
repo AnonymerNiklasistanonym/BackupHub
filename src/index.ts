@@ -4,6 +4,7 @@
 import * as path from "path";
 import abruneggOneDrive, { AbruneggOneDriveCommand } from "./plugins/abruneggOnedrive";
 import copyFiles, { CopyFilesCommand } from "./plugins/copyFiles";
+import git, { GitCommand } from "./plugins/git";
 import github, { GitHubCommand } from "./plugins/github";
 import gitlab, { GitLabCommand } from "./plugins/gitlab";
 import grive, { GriveCommand } from "./plugins/grive";
@@ -13,6 +14,7 @@ import type { AbruneggOneDrive } from "./plugins/abruneggOnedrive";
 import backupHub from "./api/backupHub";
 import type { CopyFiles } from "./plugins/copyFiles";
 import { promises as fs } from "fs";
+import type { Git } from "./plugins/git";
 import type { GitHub } from "./plugins/github";
 import type { GitLab } from "./plugins/gitlab";
 import type { Grive } from "./plugins/grive";
@@ -36,6 +38,7 @@ const logLevel = LogLevel.INFO;
     // Add plugin: (if provided it runs checks to verify integrity)
     console.log(logFormatter(await backupHub.addPlugin(abruneggOneDrive), logLevel));
     console.log(logFormatter(await backupHub.addPlugin(copyFiles), logLevel));
+    console.log(logFormatter(await backupHub.addPlugin(git), logLevel));
     console.log(logFormatter(await backupHub.addPlugin(github), logLevel));
     console.log(logFormatter(await backupHub.addPlugin(gitlab), logLevel));
     console.log(logFormatter(await backupHub.addPlugin(grive), logLevel));
@@ -257,6 +260,32 @@ const logLevel = LogLevel.INFO;
             name: "Backup GitLab account connected repositories"
         });
         console.log(logFormatter(outputGitLabBackup.log, logLevel));
+    }
+
+    const otherGitRepoListExist = false;
+    if (otherGitRepoListExist) {
+        const otherGitRepoList = await JSON.parse((
+            await fs.readFile("other_git_repo_list.json")).toString()) as Git.Repo[];
+
+        const outputOtherGitReposBackup = await backupHub.runJob({
+            data: {
+                backupDirs: ["${...BACKUP_DRIVE}"],
+                dryRun,
+                sourceDir: "/home/${USER}"
+            },
+            instructions: [
+                {
+                    command: GitCommand.BACKUP_REPOS,
+                    options: {
+                        backupDirs: ["${...BACKUP_DIR}/BackupOtherGitRepos_${USER}"],
+                        gitRepoList: otherGitRepoList
+                    },
+                    plugin: "Git"
+                } as Git.Instruction
+            ],
+            name: "Backup other Git repositories"
+        });
+        console.log(logFormatter(outputOtherGitReposBackup.log, logLevel));
     }
 
 })().catch(err => {

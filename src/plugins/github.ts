@@ -34,7 +34,7 @@ const createLogEntry = createLogEntryGenerator(debug, pluginName);
 
 const shellCommand = "git";
 
-const gitHubPlugin: Plugin = {
+const githubPlugin: Plugin = {
     name: pluginName,
     routines: {
         // eslint-disable-next-line complexity
@@ -43,19 +43,19 @@ const gitHubPlugin: Plugin = {
 
             try {
                 // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-                const gitHubInstruction = instruction as GitHub.Instruction;
-                logs.push(createLogEntry(JSON.stringify(gitHubInstruction), LogLevel.DEBUG));
+                const githubInstruction = instruction as GitHub.Instruction;
+                logs.push(createLogEntry(JSON.stringify(githubInstruction), LogLevel.DEBUG));
 
-                if (gitHubInstruction.command === GitHubCommand.BACKUP_REPOS) {
+                if (githubInstruction.command === GitHubCommand.BACKUP_REPOS) {
                     // No special things
                 } else {
                     // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-                    throw Error(`The command '${gitHubInstruction.command}' is not supported`);
+                    throw Error(`The command '${githubInstruction.command}' is not supported`);
                 }
 
                 // Read config data
-                const token = gitHubInstruction.options.githubApiOauthToken;
-                const owner = gitHubInstruction.options.githubApiAccountName;
+                const token = githubInstruction.options.githubApiOauthToken;
+                const owner = githubInstruction.options.githubApiAccountName;
 
                 // Get git repositories
                 const octokit = new Octokit({
@@ -79,7 +79,7 @@ const gitHubPlugin: Plugin = {
 
                 // Resolve backup directories
                 let backupDirs = resolveVariableString(options.globals.variables,
-                    gitHubInstruction.options.backupDirs);
+                    githubInstruction.options.backupDirs);
                 if (!Array.isArray(backupDirs)) {
                     backupDirs = [backupDirs];
                 }
@@ -123,6 +123,10 @@ const gitHubPlugin: Plugin = {
 
                 }
             } catch (err) {
+                const pluginErrorLogs = (err as PluginError).logs;
+                if (pluginErrorLogs) {
+                    logs.push(... pluginErrorLogs);
+                }
                 const pluginError: PluginError = err as Error;
                 pluginError.message = `Plugin ${pluginName}: ${pluginError.message}`;
                 pluginError.logs = logs;
@@ -143,6 +147,10 @@ const gitHubPlugin: Plugin = {
                     throw Error(`The '${shellCommand}' command was not found`);
                 }
             } catch (err) {
+                const pluginErrorLogs = (err as PluginError).logs;
+                if (pluginErrorLogs) {
+                    logs.push(... pluginErrorLogs);
+                }
                 const pluginError: PluginError = err as Error;
                 pluginError.message = `Plugin ${pluginName}: ${pluginError.message}`;
                 pluginError.logs = logs;
@@ -157,4 +165,4 @@ const gitHubPlugin: Plugin = {
     }
 };
 
-export default gitHubPlugin;
+export default githubPlugin;

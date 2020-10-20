@@ -62,8 +62,6 @@ export const runShellCommand = async (
                 }
                 return resolve(commandOutput);
             });
-        }).catch(err => {
-            throw err;
         });
         return { logs, output };
     } catch (err) {

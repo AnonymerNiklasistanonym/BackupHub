@@ -10,3 +10,4 @@ keys
 *.log
 github_credentials.json
 gitlab_credentials.json
+other_git_repo_list.json

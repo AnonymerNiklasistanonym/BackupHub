@@ -3,10 +3,9 @@ import {
     resolveVariableString
 } from "../api/helper";
 import { debuglog } from "util";
+import type { Git } from "./git/types";
+export type { Git } from "./git/types";
 import { gitBackupRepo } from "./git/gitInternal";
-import { Gitlab as Gitbeaker } from "@gitbeaker/node";
-import type { GitLab } from "./gitlab/types";
-export type { GitLab } from "./gitlab/types";
 import type { Log } from "../api/log";
 import { LogLevel } from "../api/logLevel";
 import path from "path";
@@ -15,26 +14,17 @@ import { PluginError } from "../api/error";
 
 
 
-export const pluginName = "GitLab";
-export enum GitLabCommand {
+export const pluginName = "Git";
+export enum GitCommand {
     BACKUP_REPOS = "BACKUP_REPOS"
 }
 
-export interface GitLabRepoInfo {
-    owner: { login: string }
-    name: string
-    // eslint-disable-next-line camelcase
-    full_name: string
-    // eslint-disable-next-line camelcase
-    has_wiki: boolean
-}
-
-const debug = debuglog("app-plugin-gitlab");
+const debug = debuglog("app-plugin-git");
 const createLogEntry = createLogEntryGenerator(debug, pluginName);
 
 const shellCommand = "git";
 
-const gitlabPlugin: Plugin = {
+const gitPlugin: Plugin = {
     name: pluginName,
     routines: {
         // eslint-disable-next-line complexity
@@ -43,35 +33,22 @@ const gitlabPlugin: Plugin = {
 
             try {
                 // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-                const gitlabInstruction = instruction as GitLab.Instruction;
-                logs.push(createLogEntry(JSON.stringify(gitlabInstruction), LogLevel.DEBUG));
+                const gitInstruction = instruction as Git.Instruction;
+                logs.push(createLogEntry(JSON.stringify(gitInstruction), LogLevel.DEBUG));
 
-                if (gitlabInstruction.command === GitLabCommand.BACKUP_REPOS) {
+                if (gitInstruction.command === GitCommand.BACKUP_REPOS) {
                     // No special things
                 } else {
                     // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-                    throw Error(`The command '${gitlabInstruction.command}' is not supported`);
+                    throw Error(`The command '${gitInstruction.command}' is not supported`);
                 }
 
                 // Read config data
-                const token = gitlabInstruction.options.gitlabApiOauthToken;
-                const url = gitlabInstruction.options.gitlabApiHostUrl;
-                const owner = gitlabInstruction.options.gitlabApiAccountName;
-
-                // Get git repositories
-                const gitbeaker = new Gitbeaker({
-                    host: `https://${url}`,
-                    oauthToken: token
-                });
-
-                // const currentUser = await gitbeaker.Users.current();
-                const repositories = await gitbeaker.Projects.all({ membership: true, owned: true });
-                logs.push(createLogEntry(`${repositories.length} repositories from the account '${
-                    owner}' were found`, LogLevel.DEBUG));
+                const gitRepoList = gitInstruction.options.gitRepoList;
 
                 // Resolve backup directories
                 let backupDirs = resolveVariableString(options.globals.variables,
-                    gitlabInstruction.options.backupDirs);
+                    gitInstruction.options.backupDirs);
                 if (!Array.isArray(backupDirs)) {
                     backupDirs = [backupDirs];
                 }
@@ -85,13 +62,12 @@ const gitlabPlugin: Plugin = {
                         continue;
                     }
                     // Clone git repositories or update already cloned ones
-                    await Promise.all(repositories.map(async (repo, index) => {
-                        const repoDir = path.join(backupDir, repo.namespace.path, repo.name);
-                        logs.push(createLogEntry(`(${index + 1}/${repositories.length}) Backup repo '${
-                            repo.namespace.path}/${repo.path}'...`));
+                    await Promise.all(gitRepoList.map(async (repo, index) => {
+                        const repoDir = path.join(backupDir, repo.name);
+                        logs.push(createLogEntry(`(${index + 1}/${gitRepoList.length}) Backup repo '${repo.name}'...`));
                         try {
-                            const codeOutput = await gitBackupRepo(repoDir, url, ` oauth:${token}`,
-                                repo.namespace.path + "/" + repo.path, options.job.dryRun);
+                            const codeOutput = await gitBackupRepo(repoDir, repo.baseUrl, undefined,
+                                repo.name, options.job.dryRun);
                             logs.push(... codeOutput);
                         } catch (err) {
                             throw err;
@@ -142,4 +118,4 @@ const gitlabPlugin: Plugin = {
     }
 };
 
-export default gitlabPlugin;
+export default gitPlugin;

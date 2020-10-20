@@ -26,11 +26,13 @@ export const logFormatter = (
 ): string => {
     let finalString = "";
     const supportedLogLevels = getSupportedLogLevels(level);
+    let first = true;
     for (const logEntry of log) {
         const tempLogLevel = logEntry.level === undefined ? LogLevel.INFO : logEntry.level;
         if (supportedLogLevels.includes(tempLogLevel)) {
-            finalString += `${logEntry.time.toISOString()} [${tempLogLevel.toUpperCase()}] ${logEntry.creator}: ${
-                logEntry.content}\n`;
+            finalString += `${first ? "" : "\n"}${logEntry.time.toISOString()} [${tempLogLevel.toUpperCase()}] ${
+                logEntry.creator}: ${logEntry.content}`;
+            first = false;
         }
     }
     return finalString;

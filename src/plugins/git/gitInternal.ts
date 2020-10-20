@@ -13,7 +13,7 @@ const createLogEntry = createLogEntryGenerator(debug, "Helper:Git");
 
 
 export const gitCloneRepo = async (
-    token: string, baseUrl: string, repoDir: string, repoFullName: string, dryRun = false
+    token: string|undefined, baseUrl: string, repoDir: string, repoFullName: string, dryRun = false
 ): Promise<Log.Entry[]> => {
     const codeOutputs: Log.Entry[] = [];
     codeOutputs.push(createLogEntry(`Create directory "${repoDir}"`, LogLevel.DEBUG));
@@ -21,8 +21,9 @@ export const gitCloneRepo = async (
         await fs.mkdir(repoDir, { recursive: true });
     }
     try {
+        const cloneUrlTokenPrefix = token ? `${token}@` : "";
         codeOutputs.push(... (await runShellCommand("git", [
-            "clone", `https://${token}@${baseUrl}/${repoFullName}.git`, repoDir
+            "clone", `https://${cloneUrlTokenPrefix}${baseUrl}/${repoFullName}.git`, repoDir
         ], { cwd: path.dirname(repoDir), dryRun })).logs);
         codeOutputs.push(... (await runShellCommand("git", [
             "fetch", "--all"
@@ -37,7 +38,7 @@ export const gitCloneRepo = async (
 };
 
 export const gitUpdateRepo = async (
-    token: string, baseUrl: string, repoDir: string, repoFullName: string, dryRun = false
+    token: string|undefined, baseUrl: string, repoDir: string, repoFullName: string, dryRun = false
 ): Promise<Log.Entry[]> => {
     try {
         const codeOutputs: Log.Entry[] = [];
@@ -57,7 +58,7 @@ export const gitUpdateRepo = async (
 };
 
 export const gitBackupRepo = async (
-    repoDir: string, baseUrl: string, token: string, repoFullName: string, dryRun = false
+    repoDir: string, baseUrl: string, token: string|undefined, repoFullName: string, dryRun = false
 ): Promise<Log.Entry[]> => {
     const codeOutputs: Log.Entry[] = [];
     codeOutputs.push(createLogEntry(`Create directory "${repoDir}"`, LogLevel.DEBUG));
