@@ -94,26 +94,43 @@ This is only a personal solution for myself to not use a bash backup script whic
 
 ### GitHub
 
-To use this plugin to update your connected repositories create a GitHub access token with full `repo` level to access (to only clone and update) private repositories.
-This information needs to be added to the command instructions, but be sure to keep this information private:
+To use this plugin to update your connected repositories create a GitHub access token with full `repo` level to access (to only clone and update) public/private repositories.
+This information needs to be added to the command instructions, but be sure to keep this information private by loading it from an external JSON file:
 
-```ts
-const gitubInstruction = {
-	command: GitHubCommand.BACKUP_REPOS,
-		options: {
-			backupDirs: ["${...BACKUP_DIR}/Xyz"],
-			githubApiAccountName: yourSecretGitHubApiAccountName,
-			githubApiOauthToken: yourSecretGitHubApiOauthToke
-		},
-		plugin: "GitHub"
-} as GitHub.Instruction
+```json
+{
+    "accountName": "Accountname",
+    "oauthToken": "thegeneratedaccesstoken"
+}
+```
+
+### GitLab
+
+To use this plugin to update your connected repositories create a GitLab access token with full `api` level to access (to only clone and update) public/private repositories.
+This information needs to be added to the command instructions, but be sure to keep this information private by loading it from an external JSON file:
+
+```json
+{
+    "accountName": "Accountname",
+    "hostUrl": "gitlab.com",
+    "oauthToken": "thegeneratedaccesstoken"
+}
+```
+
+### Git
+
+To use this plugin it is advised to just load the repo list from an external JSON file:
+
+```json
+[
+    {
+        "name": "marktex",
+        "baseUrl": "aur.archlinux.org"
+    }
+]
 ```
 
 ## Future Plans
 
-- Add plugins:
-  - gitlab (account)
-  - private git repos (pacman AUR repos with private key and password)
-- Create a JSON file parser to only pass a JSON configuration file to this program.
-- Make log levels important (currently they do not matter)
-- More tests
+- [ ] Create a JSON file parser to only pass a JSON configuration file to this program.
+- [ ] More tests
