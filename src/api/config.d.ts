@@ -3,8 +3,17 @@ export namespace Config {
     export namespace Globals {
 
         export interface Variable {
+            /**
+             * Global variable name
+             */
             name: string
+            /**
+             * Global variable description
+             */
             description?: string
+            /**
+             * Global variable value(s)
+             */
             value: string | string[]
         }
 

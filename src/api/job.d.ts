@@ -25,8 +25,20 @@ export namespace Job {
 }
 
 export interface Job<JOB_DATA extends Job.DefaultData = Job.DefaultData> {
+    /**
+     * Job name
+     */
     name: string
+    /**
+     * Job description
+     */
     description?: string
+    /**
+     * Job data
+     */
     data: JOB_DATA
+    /**
+     * Job instructions
+     */
     instructions: Instruction<any, any>[]
 }

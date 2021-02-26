@@ -1,0 +1,142 @@
+{
+    "type": "object",
+    "properties": {
+        "globals": {
+            "$ref": "#/definitions/ConfigFileGlobals",
+            "description": "Global configurations"
+        },
+        "jobs": {
+            "description": "Backup jobs",
+            "type": "array",
+            "items": {
+                "$ref": "#/definitions/Job<Job.DefaultData>"
+            }
+        }
+    },
+    "required": [
+        "globals",
+        "jobs"
+    ],
+    "definitions": {
+        "ConfigFileGlobals": {
+            "type": "object",
+            "properties": {
+                "variables": {
+                    "description": "Global variables",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/Config.Globals.Variable"
+                    }
+                }
+            },
+            "required": [
+                "variables"
+            ]
+        },
+        "Config.Globals.Variable": {
+            "type": "object",
+            "properties": {
+                "name": {
+                    "description": "Global variable name",
+                    "type": "string"
+                },
+                "description": {
+                    "description": "Global variable description",
+                    "type": "string"
+                },
+                "value": {
+                    "description": "Global variable value(s)",
+                    "anyOf": [
+                        {
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            }
+                        },
+                        {
+                            "type": "string"
+                        }
+                    ]
+                }
+            },
+            "required": [
+                "name",
+                "value"
+            ]
+        },
+        "Job<Job.DefaultData>": {
+            "type": "object",
+            "properties": {
+                "name": {
+                    "description": "Job name",
+                    "type": "string"
+                },
+                "description": {
+                    "description": "Job description",
+                    "type": "string"
+                },
+                "data": {
+                    "$ref": "#/definitions/Job.DefaultData",
+                    "description": "Job data"
+                },
+                "instructions": {
+                    "description": "Job instructions",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/Instruction<any,any,string>"
+                    }
+                }
+            },
+            "required": [
+                "data",
+                "instructions",
+                "name"
+            ]
+        },
+        "Job.DefaultData": {
+            "type": "object",
+            "properties": {
+                "backupDirs": {
+                    "description": "The backup directories",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "sourceDir": {
+                    "description": "The source directory",
+                    "type": "string"
+                },
+                "dryRun": {
+                    "description": "Run the job without actually performing any create/write/copy/... actions",
+                    "type": "boolean"
+                }
+            },
+            "required": [
+                "backupDirs",
+                "sourceDir"
+            ]
+        },
+        "Instruction<any,any,string>": {
+            "type": "object",
+            "properties": {
+                "plugin": {
+                    "description": "Plugin name",
+                    "type": "string"
+                },
+                "command": {
+                    "description": "Plugin command"
+                },
+                "options": {
+                    "description": "Plugin command options"
+                }
+            },
+            "required": [
+                "command",
+                "options",
+                "plugin"
+            ]
+        }
+    },
+    "$schema": "http://json-schema.org/draft-07/schema#"
+}

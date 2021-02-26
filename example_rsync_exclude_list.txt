@@ -99,9 +99,12 @@ backup_home_directory
 .config/gedit
 .config/ghb
 .config/GIMP
+.config/GIBIS-UNIFESP
 .config/GitHub Desktop
 .config/globaltime
 .config/Google
+.config/GottCode
+.config/google-chrome
 .config/gscan2pdfrc
 .config/gtk-2.0
 .config/gtk-3.0
@@ -125,6 +128,7 @@ backup_home_directory
 .config/little-shutdown-program
 .config/lsp-plugins
 .config/lutris
+.config/lutris-web-runner-electron
 .config/manjaro-hello.json
 .config/matplotlib
 .config/Meltytech
@@ -148,6 +152,7 @@ backup_home_directory
 .config/pamac
 .config/pavucontrol.ini
 .config/pdfmod
+.config/pipewire-media-session
 .config/procps
 .config/pulse
 .config/PulseEffects
@@ -194,15 +199,21 @@ backup_home_directory
 .config/kconf_updaterc
 .config/kritadisplayrc
 .config/LANSConfig.conf
+.dbus
+.debug
+.designer
 .docker
 .dotnet
 .dvdcss
 .electron
+.electron-gyp
 .elementary
 .factorio
 .fltk
+.GameGuide
 .gnome
 .gnupg
+.gphoto
 .gradle
 .hplip
 .icons
@@ -229,8 +240,10 @@ backup_home_directory
 .openshot_qt
 .pkg-cache
 .pki
+.purple
 .putty
 .pylint.d
+.QtWebEngineProcess
 .quokka
 .rustup
 .scratch
@@ -295,4 +308,4 @@ snap
 Programs/anki
 Programs/Natron-2.3.15-1
 
-Videos/Movies
+Videos/movies

@@ -58,7 +58,7 @@ export const runShellCommand = async (
                 logs.push(createLogEntry(`Command exit with ${exitCode} and the following output:\n${commandOutput}`,
                     exitCode !== 0 ? LogLevel.ERROR : LogLevel.DEBUG));
                 if (exitCode !== 0) {
-                    return reject(Error(`Process exited with the error code ${exitCode}`));
+                    return reject(Error(`Process exited with the error code ${exitCode} (${commandOutput})`));
                 }
                 return resolve(commandOutput);
             });

@@ -6,6 +6,8 @@
         "docs/**/*.ts"
     ],
     "files": [
-        ".eslintrc.js"
+        ".eslintrc.js",
+        "src/create_json_schema.ts",
+        "src/config_type.ts"
     ]
 }
