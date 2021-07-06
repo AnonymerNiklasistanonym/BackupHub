@@ -71,7 +71,9 @@ export default (): Mocha.Suite => {
                         "mugshot"
                     ],
                     url: "https://gitlab.freedesktop.org/accountsservice/accountsservice",
-                    validatedBy: "Signature",
+                    validatedBy: [
+                        "Signature"
+                    ],
                     version: "0.6.55-2"
                 }
             ] as PacmanPackageEntry[],
@@ -153,7 +155,9 @@ export default (): Mocha.Suite => {
                         "None"
                     ],
                     url: "https://ankisrs.net/",
-                    validatedBy: "Signature",
+                    validatedBy: [
+                        "Signature"
+                    ],
                     version: "2.1.26-1"
                 }
             ] as PacmanPackageEntry[],
