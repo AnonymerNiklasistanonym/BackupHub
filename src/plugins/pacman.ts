@@ -21,7 +21,7 @@ const debug = debuglog("app-plugin-pacman");
 const createLogEntry = createLogEntryGenerator(debug, pluginName);
 
 export interface PacmanPackageEntry {
-    validatedBy: string
+    validatedBy: string[]
     installScript: string
     replaces: string
     conflictsWith: string
@@ -93,7 +93,7 @@ export const parsePacmanPackageEntry = (pacmanOutThing: string): PacmanPackageEn
             } else if (finalKey === "requiredBy") {
                 outObject.requiredBy = value.split("  ");
             } else if (finalKey === "validatedBy") {
-                outObject.validatedBy = value;
+                outObject.validatedBy = value.split("  ");
             } else if (finalKey === "version") {
                 outObject.version = value;
             } else if (finalKey === "url") {
@@ -119,6 +119,8 @@ export const parsePacmanPackageEntry = (pacmanOutThing: string): PacmanPackageEn
                 outObject.provides.push(... value.split("  "));
             } else if (previousKey === "requiredBy") {
                 outObject.requiredBy.push(... value.split("  "));
+            } else if (previousKey === "validatedBy") {
+                outObject.validatedBy.push(... value.split("  "));
             } else {
                 throw Error(`Unexpected key was found: '${previousKey}'`);
             }
@@ -164,17 +166,34 @@ const pacmanPlugin: Plugin = {
                 });
                 logs.push(... output.logs);
 
-                const bigBoy = JSON.stringify(output.output.split("\n\n").reduce(
-                    (prev, curr) => prev.concat(parsePacmanPackageEntry(curr)), [] as PacmanPackageEntry[]), null, 4);
+                const pacmanCliOutputPackages = output.output.split("\n\n");
+                logs.push(createLogEntry("pacmanCliOutputPackages: "
+                    + JSON.stringify(pacmanCliOutputPackages), LogLevel.DEBUG));
 
-                const jsonOutputFilePaths = resolveVariableString(options.globals.variables,
+                const pacmanPackages = pacmanCliOutputPackages.reduce(
+                    (prev, curr) => prev.concat(parsePacmanPackageEntry(curr)), [] as PacmanPackageEntry[]);
+                logs.push(createLogEntry("pacmanPackages: "
+                    + JSON.stringify(pacmanPackages), LogLevel.DEBUG));
+
+                const bigBoy = JSON.stringify(pacmanPackages, null, 4);
+                logs.push(createLogEntry("bigBoy: "
+                    + JSON.stringify(bigBoy), LogLevel.DEBUG));
+
+                let jsonOutputFilePaths = resolveVariableString(options.globals.variables,
                     pacmanInstruction.options.jsonOutputFilePaths);
+                if (!Array.isArray(jsonOutputFilePaths)) {
+                    jsonOutputFilePaths = [jsonOutputFilePaths];
+                }
+
                 for (const jsonOutputFilePath of jsonOutputFilePaths) {
-                    const outputMkDir = await checkAndCreateBackupDir(path.dirname(jsonOutputFilePath), {
+                    logs.push(createLogEntry("directory: "
+                    + path.dirname(jsonOutputFilePath) + " (" + jsonOutputFilePath + ")", LogLevel.DEBUG));
+                    // Check if each backup directory exists or can be created
+                    const backupDirStatus = await checkAndCreateBackupDir(path.dirname(jsonOutputFilePath), {
                         dryRun: options.job.dryRun
                     });
-                    logs.push(... outputMkDir.logs);
-                    if (!outputMkDir.exists) {
+                    logs.push(... backupDirStatus.logs);
+                    if (!backupDirStatus.exists) {
                         continue;
                     }
                     try {

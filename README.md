@@ -10,6 +10,8 @@ This is only a personal solution for myself to not use a bash backup script whic
 
 ## Quickstart
 
+### Write Backup Script
+
 - In the file [`src/index.ts`](src/index.ts) a description of a backup can be specified
   - Variables can be set that can resolve to multiple values (circular dependencies throw errors!):
 
@@ -89,6 +91,29 @@ This is only a personal solution for myself to not use a bash backup script whic
     ```
 
 - New instructions can easily be added and then combined as can be seen in the directory [`src/plugins`](src/plugins)
+
+### Run Backup Script
+
+```sh
+# This is only necessary once to be able to build the backup script
+npm install
+# This is necessary for every time you rewrite the backup script
+npm run build
+# Run this to execute the built backup script
+npm run start 2>&1 | tee -a backup.log
+```
+
+If you want to debug where something goes wrong you can try the `dev` command which prints even more log messages:
+
+
+```sh
+# This is only necessary once to be able to build the backup script
+npm install
+# Run this to execute and build the backup script with debug console logging
+# It is recommended to turn console logging off since otherwise the logs
+# could collide and merge their output at times.
+npm run dev 2>&1 | tee -a backup.log
+```
 
 ## Plugin Instructions
 

@@ -1,21 +1,25 @@
 import type { Config } from "./config";
 export type { Config } from "./config";
-// import type { Instruction } from "./instruction";
+import { createLogEntryGenerator } from "./helper";
+import { debuglog } from "util";
 export type { Instruction } from "./instruction";
 import type { Job } from "./job";
 export type { Job } from "./job";
 import type { Log } from "./log";
+import { LogLevel } from "./logLevel";
 export type { Log } from "./log";
 import type { Plugin } from "./plugin";
 export type { Plugin } from "./plugin";
 
+const debug = debuglog("app-api");
+const createLogEntry = createLogEntryGenerator(debug, "Api");
 
 export class BackupHup {
     private plugins: Plugin<any>[] = [];
     private variables: Config.Globals.Variable[] = [];
     private methods: Config.Globals.Method<any[], any>[] = [];
 
-    public version = "1.0.1";
+    public version = "1.0.2";
 
     // eslint-disable-next-line @typescript-eslint/require-await
     public async addPlugin (plugin: Plugin): Promise<Log.Entry[]> {
@@ -65,6 +69,8 @@ export class BackupHup {
     public async runJob (job: Job): Promise<Job.Output> {
         const logs: Log.Entry[] = [];
 
+        logs.push(createLogEntry(`Run the job '${job.name}'` + (job.description
+            ? ` (${job.description})` : ""), LogLevel.INFO));
         for (const instruction of job.instructions) {
             const indexOfPlugin = this.plugins.findIndex(x => x.name === instruction.plugin);
             if (indexOfPlugin > -1) {

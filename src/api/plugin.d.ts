@@ -26,6 +26,8 @@ export namespace Plugin {
             job: JOB_DATA
         }
 
+        // Disable eslint message since it is being used
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         interface Routines<JOB_DATA extends Job.DefaultData = Job.DefaultData> {
             /**
              * Is run before all jobs

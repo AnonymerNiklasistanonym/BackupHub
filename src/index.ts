@@ -1,6 +1,7 @@
 /* eslint-disable no-console */
 /* eslint-disable no-duplicate-imports */
 
+import * as fsOld from "fs";
 import * as path from "path";
 import abruneggOneDrive, { AbruneggOneDriveCommand } from "./plugins/abruneggOnedrive";
 import copyFiles, { CopyFilesCommand } from "./plugins/copyFiles";
@@ -49,19 +50,34 @@ const logLevel = LogLevel.INFO;
     backupHub.addGlobalVariable({
         description: "The external backup drives",
         name: "BACKUP_DRIVE",
-        value: [ "/run/media/${USER}/Backup 4TB", "/run/media/${USER}/Backup #1", "/home/niklas/backup_home_directory" ]
+        value: [
+            "/run/media/${CURRENT_USER}/Backup 4TB",
+            "/run/media/${CURRENT_USER}/Backup #1"
+        ]
     });
     backupHub.addGlobalVariable({
-        name: "USER",
+        name: "BACKUP_USER",
         value: "niklas"
     });
+    // Use this variable in case this program is run via a live disc and the
+    backupHub.addGlobalVariable({
+        name: "CURRENT_USER",
+        value: "niklas" // for example "manjaro" when using the manjaro live iso
+    });
+    // Use this variable in case this program is run via a live disc and the
+    // directory to backup is actually mounted to a "/run/media/xyz" drive
+    backupHub.addGlobalVariable({
+        name: "MOUNTED_DISC_HOME_DIR",
+        value: "/home"
+    });
+
 
     // Jobs to execute:
     const outputBackupHomeDir = await backupHub.runJob({
         data: {
-            backupDirs: ["${...BACKUP_DRIVE}/BackupManjaroDesktop/home_${USER}"],
+            backupDirs: ["${...BACKUP_DRIVE}/BackupManjaroDesktop/home_${BACKUP_USER}"],
             dryRun,
-            sourceDir: "/home/${USER}"
+            sourceDir: "${MOUNTED_DISC_HOME_DIR}/${BACKUP_USER}"
         },
         instructions: [
             {
@@ -80,9 +96,9 @@ const logLevel = LogLevel.INFO;
 
     const outputBackupOneDriveDir = await backupHub.runJob({
         data: {
-            backupDirs: ["${...BACKUP_DRIVE}/Cloud/OneDrive (${USER} - latest)"],
+            backupDirs: ["${...BACKUP_DRIVE}/Cloud/OneDrive (${BACKUP_USER} - latest)"],
             dryRun,
-            sourceDir: "/home/${USER}/OneDrive"
+            sourceDir: "${MOUNTED_DISC_HOME_DIR}/${BACKUP_USER}/OneDrive"
         },
         instructions: [
             {
@@ -105,9 +121,9 @@ const logLevel = LogLevel.INFO;
 
     const outputBackupGoogleDriveDir = await backupHub.runJob({
         data: {
-            backupDirs: ["${...BACKUP_DRIVE}/Cloud/GoogleDrive (${USER} - latest)"],
+            backupDirs: ["${...BACKUP_DRIVE}/Cloud/GoogleDrive (${BACKUP_USER} - latest)"],
             dryRun,
-            sourceDir: "/home/${USER}/Documents/GoogleDrive"
+            sourceDir: "${MOUNTED_DISC_HOME_DIR}/${BACKUP_USER}/Documents/GoogleDrive"
         },
         instructions: [
             {
@@ -126,7 +142,7 @@ const logLevel = LogLevel.INFO;
                 plugin: "Rsync"
             } as Rsync.Instruction
         ],
-        name: "Backup OneDrive directory"
+        name: "Backup GoogleDrive directory"
     });
     console.log(logFormatter(outputBackupGoogleDriveDir.log, logLevel));
 
@@ -156,13 +172,13 @@ const logLevel = LogLevel.INFO;
         data: {
             backupDirs: ["${...BACKUP_DRIVE}/BackupManjaroDesktop"],
             dryRun,
-            sourceDir: "/home/${USER}/.config/Code - Insiders/User"
+            sourceDir: "${MOUNTED_DISC_HOME_DIR}/${BACKUP_USER}/.config/Code - Insiders/User"
         },
         instructions: [
             {
                 command: CopyFilesCommand.COPY,
                 options: {
-                    backupDirs: ["${...BACKUP_DIR}/vscode_settings_${USER}"],
+                    backupDirs: ["${...BACKUP_DIR}/vscode_settings_${BACKUP_USER}"],
                     deleteBackupDir: true,
                     glob: true,
                     sourceFiles: [
@@ -183,13 +199,13 @@ const logLevel = LogLevel.INFO;
         data: {
             backupDirs: ["${...BACKUP_DRIVE}/BackupManjaroDesktop"],
             dryRun,
-            sourceDir: "/home/${USER}"
+            sourceDir: "${MOUNTED_DISC_HOME_DIR}/${BACKUP_USER}"
         },
         instructions: [
             {
                 command: PacmanCommand.GET_PACKAGE_LIST_JSON,
                 options: {
-                    jsonOutputFilePaths: ["${...BACKUP_DIR}/installed_programs_pacman_${USER}.json"]
+                    jsonOutputFilePaths: ["${...BACKUP_DIR}/installed_programs_pacman_${BACKUP_USER}.json"]
                 },
                 plugin: "Pacman"
             } as Pacman.Instruction
@@ -198,26 +214,29 @@ const logLevel = LogLevel.INFO;
     });
     console.log(logFormatter(outputPacmanBackup.log, logLevel));
 
-    const githubCredentialsExist = false;
-    if (githubCredentialsExist) {
+    // This job will only run if you provide a github_credentials.json file with
+    // your account name and an OAuth token
+    const githubCredentialsListFilePath = path.join(__dirname, "..", "github_credentials.json");
+    if (fsOld.existsSync(githubCredentialsListFilePath)) {
         interface GitHubApiCredentials {
             accountName: string
             oauthToken: string
         }
         const githubApiCredentials = await JSON.parse((
-            await fs.readFile("github_credentials.json")).toString()) as GitHubApiCredentials;
+            await fs.readFile(githubCredentialsListFilePath)).toString()) as GitHubApiCredentials;
 
         const outputGitHubBackup = await backupHub.runJob({
             data: {
                 backupDirs: ["${...BACKUP_DRIVE}"],
                 dryRun,
-                sourceDir: "/home/${USER}"
+                sourceDir: "${MOUNTED_DISC_HOME_DIR}/${BACKUP_USER}"
             },
+            description: `based on the information of ${githubCredentialsListFilePath}`,
             instructions: [
                 {
                     command: GitHubCommand.BACKUP_REPOS,
                     options: {
-                        backupDirs: ["${...BACKUP_DIR}/BackupGitHubRepos_${USER}"],
+                        backupDirs: ["${...BACKUP_DIR}/BackupGitHubRepos_${BACKUP_USER}"],
                         githubApiAccountName: githubApiCredentials.accountName,
                         githubApiOauthToken: githubApiCredentials.oauthToken
                     },
@@ -229,27 +248,31 @@ const logLevel = LogLevel.INFO;
         console.log(logFormatter(outputGitHubBackup.log, logLevel));
     }
 
-    const gitlabCredentialsExist = false;
-    if (gitlabCredentialsExist) {
+    // This job will only run if you provide a gitlab_credentials.json file with
+    // your account name and an OAuth token (and host URL to support self hosted
+    // instances)
+    const gitlabCredentialsFilePath = path.join(__dirname, "..", "gitlab_credentials.json");
+    if (fsOld.existsSync(gitlabCredentialsFilePath)) {
         interface GitLabApiCredentials {
             accountName: string
             hostUrl: string
             oauthToken: string
         }
         const gitlabApiCredentials = await JSON.parse((
-            await fs.readFile("gitlab_credentials.json")).toString()) as GitLabApiCredentials;
+            await fs.readFile(gitlabCredentialsFilePath)).toString()) as GitLabApiCredentials;
 
         const outputGitLabBackup = await backupHub.runJob({
             data: {
                 backupDirs: ["${...BACKUP_DRIVE}"],
                 dryRun,
-                sourceDir: "/home/${USER}"
+                sourceDir: "${MOUNTED_DISC_HOME_DIR}/${BACKUP_USER}"
             },
+            description: `based on the information of ${gitlabCredentialsFilePath}`,
             instructions: [
                 {
                     command: GitLabCommand.BACKUP_REPOS,
                     options: {
-                        backupDirs: ["${...BACKUP_DIR}/BackupGitLabRepos_${USER}"],
+                        backupDirs: ["${...BACKUP_DIR}/BackupGitLabRepos_${BACKUP_USER}"],
                         gitlabApiAccountName: gitlabApiCredentials.accountName,
                         gitlabApiHostUrl: gitlabApiCredentials.hostUrl,
                         gitlabApiOauthToken: gitlabApiCredentials.oauthToken
@@ -262,22 +285,25 @@ const logLevel = LogLevel.INFO;
         console.log(logFormatter(outputGitLabBackup.log, logLevel));
     }
 
-    const otherGitRepoListExist = false;
-    if (otherGitRepoListExist) {
+    // This job will only run if you provide a other_git_repo_list.json file
+    // with paths to otherwise hosted git repositories
+    const otherGitRepoListFilePath = path.join(__dirname, "..", "other_git_repo_list.json");
+    if (fsOld.existsSync(otherGitRepoListFilePath)) {
         const otherGitRepoList = await JSON.parse((
-            await fs.readFile("other_git_repo_list.json")).toString()) as Git.Repo[];
+            await fs.readFile(otherGitRepoListFilePath)).toString()) as Git.Repo[];
 
         const outputOtherGitReposBackup = await backupHub.runJob({
             data: {
                 backupDirs: ["${...BACKUP_DRIVE}"],
                 dryRun,
-                sourceDir: "/home/${USER}"
+                sourceDir: "/home/${BACKUP_USER}"
             },
+            description: `based on the information of ${otherGitRepoListFilePath}`,
             instructions: [
                 {
                     command: GitCommand.BACKUP_REPOS,
                     options: {
-                        backupDirs: ["${...BACKUP_DIR}/BackupOtherGitRepos_${USER}"],
+                        backupDirs: ["${...BACKUP_DIR}/BackupOtherGitRepos_${BACKUP_USER}"],
                         gitRepoList: otherGitRepoList
                     },
                     plugin: "Git"

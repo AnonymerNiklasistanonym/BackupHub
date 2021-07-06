@@ -51,7 +51,7 @@ export const gitUpdateRepo = async (
         return codeOutputs;
     } catch (updateError) {
         if (dryRun !== true) {
-            await fs.rmdir(repoDir, { recursive: true });
+            await fs.rm(repoDir, { recursive: true });
         }
         return await gitCloneRepo(token, baseUrl, repoDir, repoFullName, dryRun);
     }
@@ -76,7 +76,7 @@ export const gitBackupRepo = async (
         } catch (cloneError) {
             codeOutputs.push(createLogEntry(`Remove directory "${repoDir}"`, LogLevel.DEBUG));
             if (dryRun !== true) {
-                await fs.rmdir(repoDir, { recursive: true });
+                await fs.rm(repoDir, { recursive: true });
             }
             throw cloneError;
         }

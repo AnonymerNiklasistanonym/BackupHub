@@ -91,13 +91,6 @@ const copyFilesPlugin: Plugin = {
                     backupDirs = [backupDirs];
                 }
                 for (const backupDir of backupDirs) {
-                    if (copyFilesInstruction.options.deleteBackupDir) {
-                        logs.push(createLogEntry(`Remove directory '${backupDir}'`));
-                        if (!options.job.dryRun) {
-                            await fs.rmdir(backupDir, { recursive: true });
-                        }
-                    }
-
                     // Check if each backup directory exists or can be created
                     const backupDirStatus = await checkAndCreateBackupDir(backupDir, {
                         dryRun: options.job.dryRun
@@ -115,7 +108,10 @@ const copyFilesPlugin: Plugin = {
                             const destFilePath = path.join(backupDir, path.relative(sourceDir, sourceFile));
                             logs.push(createLogEntry(`Copy '${sourceFile}' to '${destFilePath}'`));
                             if (!options.job.dryRun) {
-                                await fsExtra.copy(sourceFile, destFilePath);
+                                await fsExtra.copy(sourceFile, destFilePath, {
+                                    overwrite: true,
+                                    recursive: true
+                                });
                             }
                         } catch (err) {
                             logs.push(createLogEntry(`Copy of '${sourceFile}' to '${backupDir}' failed: ${

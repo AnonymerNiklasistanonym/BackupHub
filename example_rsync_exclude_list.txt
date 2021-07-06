@@ -92,6 +92,8 @@ backup_home_directory
 .config/deepin
 .config/Dharkael
 .config/discord
+.config/discordcanary
+.config/Qtrac Ltd.
 .config/Electron
 .config/enchant
 .config/falkon

@@ -1,7 +1,6 @@
-import { Application, SourceFileMode, TSConfigReader, TypeDocReader } from "typedoc";
+import { Application, TSConfigReader, TypeDocReader } from "typedoc";
 import { createTypedocReadme } from "./createTypedocReadme";
 import path from "path";
-import { ScriptTarget } from "typescript";
 
 
 /** The default directory where the documentation is generated */
@@ -26,18 +25,14 @@ export const defaultDocsOutputDir = path.join(__dirname, "..", "dist", "docs");
                 "dist/**/*",
                 "tests/**/*"
             ],
-            experimentalDecorators: true,
-            ignoreCompilerErrors: false,
-            mode: SourceFileMode.Modules,
             name: "MarkTeX Modules",
-            readme: path.join(defaultDocsOutputDir, "README.md"),
-            target: ScriptTarget.ESNext
+            readme: path.join(defaultDocsOutputDir, "README.md")
         });
 
-        const project = app.convert(app.expandInputFiles(["src"]));
+        const project = app.convert();
 
         if (project) {
-            app.generateDocs(project, path.join(defaultDocsOutputDir, "site"));
+            await app.generateDocs(project, path.join(defaultDocsOutputDir, "site"));
         } else {
             throw Error("TypeDoc documentation generation was not successful");
         }
