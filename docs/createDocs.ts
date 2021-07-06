@@ -19,14 +19,18 @@ export const defaultDocsOutputDir = path.join(__dirname, "..", "dist", "docs");
 
         app.bootstrap({
             categorizeByGroup: true,
-            exclude: [
-                "node_modules/**/*",
-                "docs/**/*",
-                "dist/**/*",
-                "tests/**/*"
+            entryPoints: [
+                path.join(__dirname, "..", "src/index.ts")
             ],
-            name: "MarkTeX Modules",
-            readme: path.join(defaultDocsOutputDir, "README.md")
+            exclude: [
+                path.join(__dirname, "..", "node_modules/**/*"),
+                path.join(__dirname, "..", "docs/**/*"),
+                path.join(__dirname, "..", "dist/**/*"),
+                path.join(__dirname, "..", "tests/**/*")
+            ],
+            name: "Backup Hub Modules",
+            readme: path.join(defaultDocsOutputDir, "README.md"),
+            version: true
         });
 
         const project = app.convert();

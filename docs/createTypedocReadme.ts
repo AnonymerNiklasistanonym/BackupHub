@@ -16,7 +16,10 @@ export const createTypedocReadme = async (): Promise<void> => {
 
     // Append extra data to typedoc README
     const dataReadme = await fs.readFile(path.join(__dirname, "..", "README.md"), { encoding: "utf-8" });
-    await fs.appendFile(finalReadmePath, "\n" + dataReadme.replace(/^#/g, "##"));
+    await fs.appendFile(finalReadmePath,
+        "\n" + dataReadme.replace(/^#/g, "##")
+            .replace("(src/index.ts)",
+                "(https://github.com/AnonymerNiklasistanonym/BackupHub/blob/main/src/index.ts)"));
     const dataTodo = await fs.readFile(path.join(defaultDocsOutputDir, "todos.md"), { encoding: "utf-8" });
     await fs.appendFile(finalReadmePath, "\n" + dataTodo.replace(/^#/g, "##"));
 };
