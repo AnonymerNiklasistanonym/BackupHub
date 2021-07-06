@@ -74,17 +74,20 @@ backup_home_directory
 .config/Android Open Source Project
 .config/audacious
 .config/autostart
+.config/balena-etcher
 .config/balena-etcher-electron
 .config/blender
 .config/bunkus.org
 .config/catfish
 .config/cef_user_data
 .config/chromium
+.config/chromium-flags.conf
 .config/chromium-dev
 .config/Code - Insiders
 .config/Code - OSS
 .config/com.github.babluboy.bookworm
 .config/configstore
+.config/crewlink
 .config/dconf
 .config/deepin
 .config/Dharkael
@@ -114,6 +117,7 @@ backup_home_directory
 .config/INRIA
 .config/Insomnia
 .config/JetBrains
+.config/jgit
 .config/JourneyDownOne
 .config/katevirc
 .config/kbibtexrc
@@ -124,15 +128,18 @@ backup_home_directory
 .config/komparerc
 .config/konsolerc
 .config/Kvantum
+.config/Kid3
 .config/libreoffice
+.config/libresprite
 .config/little-shutdown-program
 .config/lsp-plugins
-.config/lutris
 .config/lutris-web-runner-electron
+.config/Maui
 .config/manjaro-hello.json
 .config/matplotlib
 .config/Meltytech
 .config/menus
+.config/microsoft-edge-dev
 .config/mimeapps.list
 .config/Mousepad
 .config/mono.addins
@@ -140,14 +147,21 @@ backup_home_directory
 .config/MuseScore
 .config/musikcube
 .config/Natron-qt.conf
+.config/neofetch
 .config/Notepadqq
 .config/obs-studio/logs
 .config/obs-studio/profiler_data
+.config/octave
 .config/octopi
 .config/okular.kmessagebox
 .config/okularpartrc
 .config/okularrc
 .config/onedrive
+.config/openrazer
+.config/OPenRGB
+.config/polychromatic
+.config/razergenie
+.config/retroarch
 .config/orage
 .config/pamac
 .config/pavucontrol.ini
@@ -187,6 +201,7 @@ backup_home_directory
 .config/user-dirs.dirs
 .config/user-dirs.locale
 .config/viewnior
+.config/VirtualBox
 .config/vlc
 .config/volumeicon
 .config/voxie
@@ -211,10 +226,12 @@ backup_home_directory
 .factorio
 .fltk
 .GameGuide
+.gdxsetup
 .gnome
 .gnupg
 .gphoto
 .gradle
+.gsutil
 .hplip
 .icons
 .idlerc
@@ -236,6 +253,8 @@ backup_home_directory
 .npm
 .nuget
 .nv
+.nvidia-settings-rc
+.octave_hist
 .omake
 .openshot_qt
 .pkg-cache
@@ -257,9 +276,12 @@ backup_home_directory
 .vim
 .visidata
 .vnc
+.vpython_cipd_cache
+.vpython-root
 .wallaby
 .wine
 .yarn
+.yarnrc
 snap
 # < Files >
 #.aspell.conf
@@ -308,4 +330,11 @@ snap
 Programs/anki
 Programs/Natron-2.3.15-1
 
+# Movies
 Videos/movies
+
+# VMs
+VirtualBox VMs
+
+# Music
+Music/already_backed_up
