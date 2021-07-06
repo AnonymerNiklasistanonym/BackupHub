@@ -1,5 +1,6 @@
 import { Application, TSConfigReader, TypeDocReader } from "typedoc";
 import { createTypedocReadme } from "./createTypedocReadme";
+import glob from "glob";
 import path from "path";
 
 
@@ -17,11 +18,19 @@ export const defaultDocsOutputDir = path.join(__dirname, "..", "dist", "docs");
         app.options.addReader(new TSConfigReader());
         app.options.addReader(new TypeDocReader());
 
+        const entryPoints = await new Promise<string[]>((resolve, reject) => {
+            glob(path.join(__dirname, "..", "src/{api,api/helper,plugins}/**/*.ts"), (err, files) => {
+                if (err) {
+                    reject(err);
+                } else {
+                    resolve(files);
+                }
+            });
+        });
+
         app.bootstrap({
             categorizeByGroup: true,
-            entryPoints: [
-                path.join(__dirname, "..", "src/index.ts")
-            ],
+            entryPoints,
             exclude: [
                 path.join(__dirname, "..", "node_modules/**/*"),
                 path.join(__dirname, "..", "docs/**/*"),
