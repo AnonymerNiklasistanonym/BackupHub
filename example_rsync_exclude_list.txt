@@ -88,6 +88,9 @@ backup_home_directory
 .config/com.github.babluboy.bookworm
 .config/configstore
 .config/crewlink
+.config/cudatext/data
+.config/cudatext/py
+.config/cudatext/settings_default
 .config/dconf
 .config/deepin
 .config/Dharkael

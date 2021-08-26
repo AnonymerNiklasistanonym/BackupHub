@@ -211,7 +211,9 @@ const pacmanPlugin: Plugin = {
             } catch (err) {
                 const pluginError: PluginError = err as Error;
                 pluginError.message = `Plugin ${pluginName}: ${pluginError.message}`;
-                pluginError.logs = logs;
+                const errLogs = (err as PluginError)?.logs;
+                pluginError.logs = errLogs !== undefined ? logs.concat(errLogs) : logs;
+                pluginError.logs.push(createLogEntry(pluginError.message, LogLevel.ERROR));
                 throw pluginError;
             }
 
@@ -231,7 +233,9 @@ const pacmanPlugin: Plugin = {
             } catch (err) {
                 const pluginError: PluginError = err as Error;
                 pluginError.message = `Plugin ${pluginName}: ${pluginError.message}`;
-                pluginError.logs = logs;
+                const errLogs = (err as PluginError)?.logs;
+                pluginError.logs = errLogs !== undefined ? logs.concat(errLogs) : logs;
+                pluginError.logs.push(createLogEntry(pluginError.message, LogLevel.ERROR));
                 throw pluginError;
             }
 

@@ -90,7 +90,7 @@ const gitlabPlugin: Plugin = {
                         logs.push(createLogEntry(`(${index + 1}/${repositories.length}) Backup repo '${
                             repo.namespace.path}/${repo.path}'...`));
                         try {
-                            const codeOutput = await gitBackupRepo(repoDir, url, ` oauth:${token}`,
+                            const codeOutput = await gitBackupRepo(repoDir, url, `oauth:${token}`,
                                 repo.namespace.path + "/" + repo.path, options.job.dryRun);
                             logs.push(... codeOutput);
                         } catch (err) {
@@ -100,13 +100,11 @@ const gitlabPlugin: Plugin = {
 
                 }
             } catch (err) {
-                const pluginErrorLogs = (err as PluginError).logs;
-                if (pluginErrorLogs) {
-                    logs.push(... pluginErrorLogs);
-                }
                 const pluginError: PluginError = err as Error;
                 pluginError.message = `Plugin ${pluginName}: ${pluginError.message}`;
-                pluginError.logs = logs;
+                const errLogs = (err as PluginError)?.logs;
+                pluginError.logs = errLogs !== undefined ? logs.concat(errLogs) : logs;
+                pluginError.logs.push(createLogEntry(pluginError.message, LogLevel.ERROR));
                 throw pluginError;
             }
 
@@ -124,13 +122,11 @@ const gitlabPlugin: Plugin = {
                     throw Error(`The '${shellCommand}' command was not found`);
                 }
             } catch (err) {
-                const pluginErrorLogs = (err as PluginError).logs;
-                if (pluginErrorLogs) {
-                    logs.push(... pluginErrorLogs);
-                }
                 const pluginError: PluginError = err as Error;
                 pluginError.message = `Plugin ${pluginName}: ${pluginError.message}`;
-                pluginError.logs = logs;
+                const errLogs = (err as PluginError)?.logs;
+                pluginError.logs = errLogs !== undefined ? logs.concat(errLogs) : logs;
+                pluginError.logs.push(createLogEntry(pluginError.message, LogLevel.ERROR));
                 throw pluginError;
             }
 

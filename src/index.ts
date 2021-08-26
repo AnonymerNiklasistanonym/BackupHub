@@ -4,6 +4,7 @@
 import * as fsOld from "fs";
 import * as path from "path";
 import abruneggOneDrive, { AbruneggOneDriveCommand } from "./plugins/abruneggOnedrive";
+import backupHub, { Log } from "./api/backupHub";
 import copyFiles, { CopyFilesCommand } from "./plugins/copyFiles";
 import git, { GitCommand } from "./plugins/git";
 import github, { GitHubCommand } from "./plugins/github";
@@ -12,9 +13,8 @@ import grive, { GriveCommand } from "./plugins/grive";
 import pacman, { PacmanCommand } from "./plugins/pacman";
 import rsync, { RsyncCommand } from "./plugins/rsync";
 import type { AbruneggOneDrive } from "./plugins/abruneggOnedrive";
-import backupHub from "./api/backupHub";
 import type { CopyFiles } from "./plugins/copyFiles";
-import { promises as fs } from "fs";
+import { promises as fsp } from "fs";
 import type { Git } from "./plugins/git";
 import type { GitHub } from "./plugins/github";
 import type { GitLab } from "./plugins/gitlab";
@@ -31,20 +31,36 @@ const dryRun = true;
 const logLevel = LogLevel.INFO;
 
 
-(async (): Promise<void> => {
+const exportLogsToFile = async (logs: Log.Entry[]) => {
+    const logString = logFormatter(logs, logLevel);
+    const date = new Date();
+    const dateString = `${date.getFullYear()}-${date.getMonth()}-${date.getDate()}` +
+        `_${date.getHours()}-${date.getSeconds()}`;
+    await fsp.writeFile(path.join(__dirname, `backupHub_${dateString}.log`), logString);
+};
 
+const allLogs: Log.Entry[] = [];
+
+
+(async (): Promise<void> => {
     // Print program version
     console.log(backupHub.version);
 
     // Add plugin: (if provided it runs checks to verify integrity)
-    console.log(logFormatter(await backupHub.addPlugin(abruneggOneDrive), logLevel));
-    console.log(logFormatter(await backupHub.addPlugin(copyFiles), logLevel));
-    console.log(logFormatter(await backupHub.addPlugin(git), logLevel));
-    console.log(logFormatter(await backupHub.addPlugin(github), logLevel));
-    console.log(logFormatter(await backupHub.addPlugin(gitlab), logLevel));
-    console.log(logFormatter(await backupHub.addPlugin(grive), logLevel));
-    console.log(logFormatter(await backupHub.addPlugin(pacman), logLevel));
-    console.log(logFormatter(await backupHub.addPlugin(rsync), logLevel));
+    const pluginLogs = [
+        await backupHub.addPlugin(abruneggOneDrive),
+        await backupHub.addPlugin(copyFiles),
+        await backupHub.addPlugin(git),
+        await backupHub.addPlugin(github),
+        await backupHub.addPlugin(gitlab),
+        await backupHub.addPlugin(grive),
+        await backupHub.addPlugin(pacman),
+        await backupHub.addPlugin(rsync)
+    ];
+    for (const pluginLog of pluginLogs) {
+        allLogs.push(... pluginLog);
+        console.log(logFormatter(pluginLog, logLevel));
+    }
 
     // Add global (available in every job) variables:
     backupHub.addGlobalVariable({
@@ -92,6 +108,7 @@ const logLevel = LogLevel.INFO;
         ],
         name: "Backup home directory"
     });
+    allLogs.push(... outputBackupHomeDir.log);
     console.log(logFormatter(outputBackupHomeDir.log, logLevel));
 
     const outputBackupOneDriveDir = await backupHub.runJob({
@@ -117,6 +134,7 @@ const logLevel = LogLevel.INFO;
         ],
         name: "Backup OneDrive directory"
     });
+    allLogs.push(... outputBackupOneDriveDir.log);
     console.log(logFormatter(outputBackupOneDriveDir.log, logLevel));
 
     const outputBackupGoogleDriveDir = await backupHub.runJob({
@@ -144,6 +162,7 @@ const logLevel = LogLevel.INFO;
         ],
         name: "Backup GoogleDrive directory"
     });
+    allLogs.push(... outputBackupGoogleDriveDir.log);
     console.log(logFormatter(outputBackupGoogleDriveDir.log, logLevel));
 
     const outputCopyFiles = await backupHub.runJob({
@@ -166,6 +185,7 @@ const logLevel = LogLevel.INFO;
         ],
         name: "Backup hosts files"
     });
+    allLogs.push(... outputCopyFiles.log);
     console.log(logFormatter(outputCopyFiles.log, logLevel));
 
     const outputCopyFilesVscodeSettings = await backupHub.runJob({
@@ -193,6 +213,7 @@ const logLevel = LogLevel.INFO;
         ],
         name: "Backup VSCode setting files"
     });
+    allLogs.push(... outputCopyFilesVscodeSettings.log);
     console.log(logFormatter(outputCopyFilesVscodeSettings.log, logLevel));
 
     const outputPacmanBackup = await backupHub.runJob({
@@ -212,6 +233,7 @@ const logLevel = LogLevel.INFO;
         ],
         name: "Backup installed programs from Pacman"
     });
+    allLogs.push(... outputPacmanBackup.log);
     console.log(logFormatter(outputPacmanBackup.log, logLevel));
 
     // This job will only run if you provide a github_credentials.json file with
@@ -223,8 +245,7 @@ const logLevel = LogLevel.INFO;
             oauthToken: string
         }
         const githubApiCredentials = await JSON.parse((
-            await fs.readFile(githubCredentialsListFilePath)).toString()) as GitHubApiCredentials;
-
+            await fsp.readFile(githubCredentialsListFilePath)).toString()) as GitHubApiCredentials;
         const outputGitHubBackup = await backupHub.runJob({
             data: {
                 backupDirs: ["${...BACKUP_DRIVE}"],
@@ -245,6 +266,7 @@ const logLevel = LogLevel.INFO;
             ],
             name: "Backup GitHub account connected repositories"
         });
+        allLogs.push(... outputGitHubBackup.log);
         console.log(logFormatter(outputGitHubBackup.log, logLevel));
     }
 
@@ -259,8 +281,7 @@ const logLevel = LogLevel.INFO;
             oauthToken: string
         }
         const gitlabApiCredentials = await JSON.parse((
-            await fs.readFile(gitlabCredentialsFilePath)).toString()) as GitLabApiCredentials;
-
+            await fsp.readFile(gitlabCredentialsFilePath)).toString()) as GitLabApiCredentials;
         const outputGitLabBackup = await backupHub.runJob({
             data: {
                 backupDirs: ["${...BACKUP_DRIVE}"],
@@ -282,6 +303,7 @@ const logLevel = LogLevel.INFO;
             ],
             name: "Backup GitLab account connected repositories"
         });
+        allLogs.push(... outputGitLabBackup.log);
         console.log(logFormatter(outputGitLabBackup.log, logLevel));
     }
 
@@ -290,7 +312,7 @@ const logLevel = LogLevel.INFO;
     const otherGitRepoListFilePath = path.join(__dirname, "..", "other_git_repo_list.json");
     if (fsOld.existsSync(otherGitRepoListFilePath)) {
         const otherGitRepoList = await JSON.parse((
-            await fs.readFile(otherGitRepoListFilePath)).toString()) as Git.Repo[];
+            await fsp.readFile(otherGitRepoListFilePath)).toString()) as Git.Repo[];
 
         const outputOtherGitReposBackup = await backupHub.runJob({
             data: {
@@ -311,14 +333,27 @@ const logLevel = LogLevel.INFO;
             ],
             name: "Backup other Git repositories"
         });
+        allLogs.push(... outputOtherGitReposBackup.log);
         console.log(logFormatter(outputOtherGitReposBackup.log, logLevel));
     }
 
-})().catch(err => {
-    console.error(err);
-    const errorLogs = (err as PluginError).logs;
-    if (errorLogs) {
-        console.log(logFormatter(errorLogs, logLevel));
+    // Write logs to file
+    await exportLogsToFile(allLogs);
+
+})().catch(async err => {
+    const errLogs = (err as PluginError)?.logs;
+    if (errLogs !== undefined) {
+        // Append error to all logs
+        allLogs.push(... errLogs, {
+            content: (err as Error).message,
+            creator: "api",
+            level: LogLevel.ERROR,
+            time: new Date()
+        });
+        // Write logs to file
+        await exportLogsToFile(allLogs);
+        console.error(logFormatter(errLogs, LogLevel.ERROR));
     }
+    console.error(err);
     process.exit(1);
 });

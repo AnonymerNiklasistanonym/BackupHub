@@ -71,7 +71,8 @@ export const runShellCommand = async (
     } catch (err) {
         debug(JSON.stringify(err));
         const pluginError: PluginError = err as Error;
-        pluginError.logs = logs;
+        const errLogs = (err as PluginError)?.logs;
+        pluginError.logs = errLogs !== undefined ? logs.concat(errLogs) : logs;
         throw pluginError;
     }
 
