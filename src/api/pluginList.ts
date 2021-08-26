@@ -7,7 +7,7 @@ import type { Grive } from "../plugins/grive";
 import type { Pacman } from "../plugins/pacman";
 import type { Rsync } from "../plugins/rsync";
 
-export type PluginList = Rsync.PluginName
+export type OfficiallySupportedPluginList = Rsync.PluginName
 | AbruneggOneDrive.PluginName
 | Git.PluginName
 | GitHub.PluginName
@@ -15,4 +15,4 @@ export type PluginList = Rsync.PluginName
 | Grive.PluginName
 | CopyFiles.PluginName
 | Pacman.PluginName
-| string;
+| "abc-die-katze";

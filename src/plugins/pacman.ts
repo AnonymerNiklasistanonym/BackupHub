@@ -1,4 +1,7 @@
-import { checkAndCreateBackupDir, commandCanBeFound, createLogEntryGenerator, runShellCommand } from "../api/helper";
+import {
+    checkAndCreateBackupDir, commandCanBeFound, createLogEntryGenerator,
+    createVersionStringPlugin, runShellCommand
+} from "../api/helper";
 import type { Log, Plugin } from "../api/backupHub";
 import { debuglog } from "util";
 import { promises as fs } from "fs";
@@ -11,6 +14,10 @@ import { resolveVariableString } from "../api/helper/resolveVariableString";
 
 
 export const pluginName = "Pacman";
+export const pluginVersionNumbers: Plugin.Info.Version = {
+    major: 1
+};
+export const pluginVersion = createVersionStringPlugin(pluginVersionNumbers);
 export enum PacmanCommand {
     GET_PACKAGE_LIST_JSON = "GET_PACKAGE_LIST_JSON"
 }
@@ -209,7 +216,9 @@ const pacmanPlugin: Plugin = {
                 }
 
             } catch (err) {
-                const pluginError: PluginError = err as Error;
+                const pluginError: PluginError = {
+                    ... err as Error, pluginName, pluginVersion
+                };
                 pluginError.message = `Plugin ${pluginName}: ${pluginError.message}`;
                 const errLogs = (err as PluginError)?.logs;
                 pluginError.logs = errLogs !== undefined ? logs.concat(errLogs) : logs;
@@ -224,14 +233,17 @@ const pacmanPlugin: Plugin = {
 
             try {
                 if (await commandCanBeFound(shellCommand)) {
-                    logs.push(createLogEntry(`The '${shellCommand}' command was found`));
+                    logs.push(createLogEntry(`The '${shellCommand}' command was found`,
+                        LogLevel.DEBUG));
                 } else {
                     logs.push(createLogEntry(`The '${shellCommand}' command was not found`,
                         LogLevel.ERROR));
                     throw Error(`The '${shellCommand}' command was not found`);
                 }
             } catch (err) {
-                const pluginError: PluginError = err as Error;
+                const pluginError: PluginError = {
+                    ... err as Error, pluginName, pluginVersion
+                };
                 pluginError.message = `Plugin ${pluginName}: ${pluginError.message}`;
                 const errLogs = (err as PluginError)?.logs;
                 pluginError.logs = errLogs !== undefined ? logs.concat(errLogs) : logs;
@@ -242,9 +254,8 @@ const pacmanPlugin: Plugin = {
             return { log: logs };
         }
     },
-    version: {
-        major: 1
-    }
+    version: pluginVersion,
+    versionNumbers: { ... pluginVersionNumbers }
 };
 
 export default pacmanPlugin;

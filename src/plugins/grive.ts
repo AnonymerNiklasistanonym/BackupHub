@@ -1,4 +1,7 @@
-import { commandCanBeFound, createLogEntryGenerator, directoryExists, runShellCommand } from "../api/helper";
+import {
+    commandCanBeFound, createLogEntryGenerator, createVersionStringPlugin,
+    directoryExists, runShellCommand
+} from "../api/helper";
 import type { Log, Plugin } from "../api/backupHub";
 import { debuglog } from "util";
 import type { Grive } from "./grive/types";
@@ -9,6 +12,10 @@ import { resolveVariableString } from "../api/helper/resolveVariableString";
 
 
 export const pluginName = "Grive";
+export const pluginVersionNumbers: Plugin.Info.Version = {
+    major: 1
+};
+export const pluginVersion = createVersionStringPlugin(pluginVersionNumbers);
 export enum GriveCommand {
     SYNCHRONIZE = "SYNCHRONIZE",
     CUSTOM = "CUSTOM"
@@ -67,7 +74,9 @@ const grivePlugin: Plugin = {
                 logs.push(... output.logs);
 
             } catch (err) {
-                const pluginError: PluginError = err as Error;
+                const pluginError: PluginError = {
+                    ... err as Error, pluginName, pluginVersion
+                };
                 pluginError.message = `Plugin ${pluginName}: ${pluginError.message}`;
                 const errLogs = (err as PluginError)?.logs;
                 pluginError.logs = errLogs !== undefined ? logs.concat(errLogs) : logs;
@@ -82,14 +91,17 @@ const grivePlugin: Plugin = {
 
             try {
                 if (await commandCanBeFound(shellCommand)) {
-                    logs.push(createLogEntry(`The '${shellCommand}' command was found`));
+                    logs.push(createLogEntry(`The '${shellCommand}' command was found`,
+                        LogLevel.DEBUG));
                 } else {
                     logs.push(createLogEntry(`The '${shellCommand}' command was not found`,
                         LogLevel.ERROR));
                     throw Error(`The '${shellCommand}' command was not found`);
                 }
             } catch (err) {
-                const pluginError: PluginError = err as Error;
+                const pluginError: PluginError = {
+                    ... err as Error, pluginName, pluginVersion
+                };
                 pluginError.message = `Plugin ${pluginName}: ${pluginError.message}`;
                 const errLogs = (err as PluginError)?.logs;
                 pluginError.logs = errLogs !== undefined ? logs.concat(errLogs) : logs;
@@ -100,9 +112,8 @@ const grivePlugin: Plugin = {
             return { log: logs };
         }
     },
-    version: {
-        major: 1
-    }
+    version: pluginVersion,
+    versionNumbers: { ... pluginVersionNumbers }
 };
 
 export default grivePlugin;

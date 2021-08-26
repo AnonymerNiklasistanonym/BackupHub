@@ -1,5 +1,5 @@
 import {
-    checkAndCreateBackupDir, createLogEntryGenerator, resolveVariableString
+    checkAndCreateBackupDir, createLogEntryGenerator, createVersionStringPlugin, resolveVariableString
 } from "../api/helper";
 import type { CopyFiles } from "./copyFiles/types";
 export type { CopyFiles } from "./copyFiles/types";
@@ -13,8 +13,11 @@ import type { Plugin } from "../api/plugin";
 import { PluginError } from "../api/error";
 
 
-
 export const pluginName = "CopyFiles";
+export const pluginVersionNumbers: Plugin.Info.Version = {
+    major: 1
+};
+export const pluginVersion = createVersionStringPlugin(pluginVersionNumbers);
 export enum CopyFilesCommand {
     COPY = "COPY"
 }
@@ -120,7 +123,9 @@ const copyFilesPlugin: Plugin = {
                     }
                 }
             } catch (err) {
-                const pluginError: PluginError = err as Error;
+                const pluginError: PluginError = {
+                    ... err as Error, pluginName, pluginVersion
+                };
                 pluginError.message = `Plugin ${pluginName}: ${pluginError.message}`;
                 const errLogs = (err as PluginError)?.logs;
                 pluginError.logs = errLogs !== undefined ? logs.concat(errLogs) : logs;
@@ -131,9 +136,8 @@ const copyFilesPlugin: Plugin = {
             return { log: logs };
         }
     },
-    version: {
-        major: 1
-    }
+    version: pluginVersion,
+    versionNumbers: { ... pluginVersionNumbers }
 };
 
 export default copyFilesPlugin;

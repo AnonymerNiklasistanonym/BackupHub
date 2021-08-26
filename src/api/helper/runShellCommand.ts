@@ -1,8 +1,9 @@
+import { BackupHubError, PluginError } from "../error";
+import { backupHubVersion } from "../backupHub";
 import { createLogEntryGenerator } from "./createLogEntryGenerator";
 import { debuglog } from "util";
 import type { Log } from "../log";
 import { LogLevel } from "../logLevel";
-import { PluginError } from "../error";
 import { spawn } from "child_process";
 
 const debug = debuglog("app-helper-runShellCommand");
@@ -70,7 +71,9 @@ export const runShellCommand = async (
         return { logs, output };
     } catch (err) {
         debug(JSON.stringify(err));
-        const pluginError: PluginError = err as Error;
+        const pluginError: BackupHubError = {
+            ... err as Error, backupHubVersion
+        };
         const errLogs = (err as PluginError)?.logs;
         pluginError.logs = errLogs !== undefined ? logs.concat(errLogs) : logs;
         throw pluginError;

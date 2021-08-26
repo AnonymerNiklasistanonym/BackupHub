@@ -30,7 +30,11 @@ export namespace Plugin {
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         interface Routines<JOB_DATA extends Job.DefaultData = Job.DefaultData> {
             /**
-             * Is run before all jobs
+             * Is run when adding the plugin to verify it works
+             */
+            test?: (options: RoutineOption) => Promise<Output> | Output
+            /**
+             * Is run when adding the plugin
              */
             setup?: (options: RoutineOption) => Promise<Output> | Output
             /**
@@ -55,7 +59,8 @@ export namespace Plugin {
 
 interface Plugin<JOB_DATA extends Job.DefaultData = Job.DefaultData> {
     name: string
-    version: Plugin.Info.Version
+    versionNumbers: Plugin.Info.Version
+    version: string
     description?: string
     url?: string
     routines: Plugin.Info.Routines<JOB_DATA>

@@ -1,11 +1,11 @@
-import type { PluginList } from "./pluginList";
+import type { OfficiallySupportedPluginList } from "./pluginList";
 
 
-export interface Instruction<COMMANDS, COMMAND_OPTIONS, PLUGIN_LIST extends PluginList = PluginList> {
+export interface Instruction<COMMANDS, COMMAND_OPTIONS, PLUGIN_NAME = OfficiallySupportedPluginList | string> {
     /**
      * Plugin name
      */
-    plugin: PLUGIN_LIST
+    plugin: PLUGIN_NAME
     /**
      * Plugin command
      */

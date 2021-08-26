@@ -1,4 +1,7 @@
-import { commandCanBeFound, createLogEntryGenerator, runShellCommand } from "../api/helper";
+import {
+    commandCanBeFound, createLogEntryGenerator, createVersionStringPlugin,
+    runShellCommand
+} from "../api/helper";
 import type { Log, Plugin } from "../api/backupHub";
 import type { AbruneggOneDrive } from "./abruneggOneDrive/types";
 export type { AbruneggOneDrive } from "./abruneggOneDrive/types";
@@ -8,6 +11,10 @@ import { PluginError } from "../api/error";
 
 
 export const pluginName = "AbruneggOneDrive";
+export const pluginVersionNumbers: Plugin.Info.Version = {
+    major: 1
+};
+export const pluginVersion = createVersionStringPlugin(pluginVersionNumbers);
 export enum AbruneggOneDriveCommand {
     SYNCHRONIZE = "SYNCHRONIZE",
     CUSTOM = "CUSTOM"
@@ -54,14 +61,17 @@ const abruneggOneDrivePlugin: Plugin = {
 
             try {
                 if (await commandCanBeFound(shellCommand)) {
-                    logs.push(createLogEntry(`The '${shellCommand}' command was found`));
+                    logs.push(createLogEntry(`The '${shellCommand}' command was found`,
+                        LogLevel.DEBUG));
                 } else {
                     logs.push(createLogEntry(`The '${shellCommand}' command was not found`,
                         LogLevel.ERROR));
                     throw Error(`The '${shellCommand}' command was not found`);
                 }
             } catch (err) {
-                const pluginError: PluginError = err as Error;
+                const pluginError: PluginError = {
+                    ... err as Error, pluginName, pluginVersion
+                };
                 pluginError.message = `Plugin ${pluginName}: ${pluginError.message}`;
                 const errLogs = (err as PluginError)?.logs;
                 pluginError.logs = errLogs !== undefined ? logs.concat(errLogs) : logs;
@@ -72,9 +82,8 @@ const abruneggOneDrivePlugin: Plugin = {
             return { log: logs };
         }
     },
-    version: {
-        major: 1
-    }
+    version: pluginVersion,
+    versionNumbers: { ... pluginVersionNumbers }
 };
 
 export default abruneggOneDrivePlugin;

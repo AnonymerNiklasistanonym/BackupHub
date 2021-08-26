@@ -1,6 +1,6 @@
 import {
     checkAndCreateBackupDir, commandCanBeFound, createLogEntryGenerator,
-    resolveVariableString
+    createVersionStringPlugin, resolveVariableString
 } from "../api/helper";
 import { debuglog } from "util";
 import { gitBackupRepo } from "./git/gitInternal";
@@ -14,8 +14,11 @@ import type { Plugin } from "../api/plugin";
 import { PluginError } from "../api/error";
 
 
-
 export const pluginName = "GitLab";
+export const pluginVersionNumbers: Plugin.Info.Version = {
+    major: 1
+};
+export const pluginVersion = createVersionStringPlugin(pluginVersionNumbers);
 export enum GitLabCommand {
     BACKUP_REPOS = "BACKUP_REPOS"
 }
@@ -100,7 +103,9 @@ const gitlabPlugin: Plugin = {
 
                 }
             } catch (err) {
-                const pluginError: PluginError = err as Error;
+                const pluginError: PluginError = {
+                    ... err as Error, pluginName, pluginVersion
+                };
                 pluginError.message = `Plugin ${pluginName}: ${pluginError.message}`;
                 const errLogs = (err as PluginError)?.logs;
                 pluginError.logs = errLogs !== undefined ? logs.concat(errLogs) : logs;
@@ -115,14 +120,17 @@ const gitlabPlugin: Plugin = {
 
             try {
                 if (await commandCanBeFound(shellCommand)) {
-                    logs.push(createLogEntry(`The '${shellCommand}' command was found`));
+                    logs.push(createLogEntry(`The '${shellCommand}' command was found`,
+                        LogLevel.DEBUG));
                 } else {
                     logs.push(createLogEntry(`The '${shellCommand}' command was not found`,
                         LogLevel.ERROR));
                     throw Error(`The '${shellCommand}' command was not found`);
                 }
             } catch (err) {
-                const pluginError: PluginError = err as Error;
+                const pluginError: PluginError = {
+                    ... err as Error, pluginName, pluginVersion
+                };
                 pluginError.message = `Plugin ${pluginName}: ${pluginError.message}`;
                 const errLogs = (err as PluginError)?.logs;
                 pluginError.logs = errLogs !== undefined ? logs.concat(errLogs) : logs;
@@ -133,9 +141,8 @@ const gitlabPlugin: Plugin = {
             return { log: logs };
         }
     },
-    version: {
-        major: 1
-    }
+    version: pluginVersion,
+    versionNumbers: { ... pluginVersionNumbers }
 };
 
 export default gitlabPlugin;

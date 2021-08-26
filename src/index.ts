@@ -1,10 +1,11 @@
 /* eslint-disable no-console */
 /* eslint-disable no-duplicate-imports */
+/* eslint-disable complexity */
 
 import * as fsOld from "fs";
 import * as path from "path";
 import abruneggOneDrive, { AbruneggOneDriveCommand } from "./plugins/abruneggOnedrive";
-import backupHub, { Log } from "./api/backupHub";
+import backupHub, { Job, Log } from "./api/backupHub";
 import copyFiles, { CopyFilesCommand } from "./plugins/copyFiles";
 import git, { GitCommand } from "./plugins/git";
 import github, { GitHubCommand } from "./plugins/github";
@@ -29,7 +30,7 @@ import type { Rsync } from "./plugins/rsync";
 // Global run properties:
 const dryRun = true;
 const logLevel = LogLevel.INFO;
-
+const runJobsInParallel = true;
 
 const exportLogsToFile = async (logs: Log.Entry[]) => {
     const logString = logFormatter(logs, logLevel);
@@ -88,8 +89,8 @@ const allLogs: Log.Entry[] = [];
     });
 
 
-    // Jobs to execute:
-    const outputBackupHomeDir = await backupHub.runJob({
+    // Jobs:
+    const jobBackupHomeDir: Job = {
         data: {
             backupDirs: ["${...BACKUP_DRIVE}/BackupManjaroDesktop/home_${BACKUP_USER}"],
             dryRun,
@@ -107,11 +108,9 @@ const allLogs: Log.Entry[] = [];
             } as Rsync.Instruction
         ],
         name: "Backup home directory"
-    });
-    allLogs.push(... outputBackupHomeDir.log);
-    console.log(logFormatter(outputBackupHomeDir.log, logLevel));
+    };
 
-    const outputBackupOneDriveDir = await backupHub.runJob({
+    const jobBackupOneDrive: Job = {
         data: {
             backupDirs: ["${...BACKUP_DRIVE}/Cloud/OneDrive (${BACKUP_USER} - latest)"],
             dryRun,
@@ -133,11 +132,9 @@ const allLogs: Log.Entry[] = [];
             } as Rsync.Instruction
         ],
         name: "Backup OneDrive directory"
-    });
-    allLogs.push(... outputBackupOneDriveDir.log);
-    console.log(logFormatter(outputBackupOneDriveDir.log, logLevel));
+    };
 
-    const outputBackupGoogleDriveDir = await backupHub.runJob({
+    const jobBackupGoogleDrive: Job = {
         data: {
             backupDirs: ["${...BACKUP_DRIVE}/Cloud/GoogleDrive (${BACKUP_USER} - latest)"],
             dryRun,
@@ -161,11 +158,9 @@ const allLogs: Log.Entry[] = [];
             } as Rsync.Instruction
         ],
         name: "Backup GoogleDrive directory"
-    });
-    allLogs.push(... outputBackupGoogleDriveDir.log);
-    console.log(logFormatter(outputBackupGoogleDriveDir.log, logLevel));
+    };
 
-    const outputCopyFiles = await backupHub.runJob({
+    const jobBackupHostFiles: Job = {
         data: {
             backupDirs: ["${...BACKUP_DRIVE}/BackupManjaroDesktop"],
             dryRun,
@@ -184,11 +179,9 @@ const allLogs: Log.Entry[] = [];
             } as CopyFiles.Instruction
         ],
         name: "Backup hosts files"
-    });
-    allLogs.push(... outputCopyFiles.log);
-    console.log(logFormatter(outputCopyFiles.log, logLevel));
+    };
 
-    const outputCopyFilesVscodeSettings = await backupHub.runJob({
+    const jobBackupVsCodeSettings: Job = {
         data: {
             backupDirs: ["${...BACKUP_DRIVE}/BackupManjaroDesktop"],
             dryRun,
@@ -212,11 +205,9 @@ const allLogs: Log.Entry[] = [];
             } as CopyFiles.Instruction
         ],
         name: "Backup VSCode setting files"
-    });
-    allLogs.push(... outputCopyFilesVscodeSettings.log);
-    console.log(logFormatter(outputCopyFilesVscodeSettings.log, logLevel));
+    };
 
-    const outputPacmanBackup = await backupHub.runJob({
+    const jobBackupPacmanPackageList: Job = {
         data: {
             backupDirs: ["${...BACKUP_DRIVE}/BackupManjaroDesktop"],
             dryRun,
@@ -232,12 +223,11 @@ const allLogs: Log.Entry[] = [];
             } as Pacman.Instruction
         ],
         name: "Backup installed programs from Pacman"
-    });
-    allLogs.push(... outputPacmanBackup.log);
-    console.log(logFormatter(outputPacmanBackup.log, logLevel));
+    };
 
     // This job will only run if you provide a github_credentials.json file with
     // your account name and an OAuth token
+    let jobBackupGitHubRepos: Job | undefined;
     const githubCredentialsListFilePath = path.join(__dirname, "..", "github_credentials.json");
     if (fsOld.existsSync(githubCredentialsListFilePath)) {
         interface GitHubApiCredentials {
@@ -246,7 +236,7 @@ const allLogs: Log.Entry[] = [];
         }
         const githubApiCredentials = await JSON.parse((
             await fsp.readFile(githubCredentialsListFilePath)).toString()) as GitHubApiCredentials;
-        const outputGitHubBackup = await backupHub.runJob({
+        jobBackupGitHubRepos = {
             data: {
                 backupDirs: ["${...BACKUP_DRIVE}"],
                 dryRun,
@@ -265,14 +255,13 @@ const allLogs: Log.Entry[] = [];
                 } as GitHub.Instruction
             ],
             name: "Backup GitHub account connected repositories"
-        });
-        allLogs.push(... outputGitHubBackup.log);
-        console.log(logFormatter(outputGitHubBackup.log, logLevel));
+        };
     }
 
     // This job will only run if you provide a gitlab_credentials.json file with
     // your account name and an OAuth token (and host URL to support self hosted
     // instances)
+    let jobBackupGitLabRepos: Job | undefined;
     const gitlabCredentialsFilePath = path.join(__dirname, "..", "gitlab_credentials.json");
     if (fsOld.existsSync(gitlabCredentialsFilePath)) {
         interface GitLabApiCredentials {
@@ -282,7 +271,7 @@ const allLogs: Log.Entry[] = [];
         }
         const gitlabApiCredentials = await JSON.parse((
             await fsp.readFile(gitlabCredentialsFilePath)).toString()) as GitLabApiCredentials;
-        const outputGitLabBackup = await backupHub.runJob({
+        jobBackupGitLabRepos = {
             data: {
                 backupDirs: ["${...BACKUP_DRIVE}"],
                 dryRun,
@@ -302,19 +291,18 @@ const allLogs: Log.Entry[] = [];
                 } as GitLab.Instruction
             ],
             name: "Backup GitLab account connected repositories"
-        });
-        allLogs.push(... outputGitLabBackup.log);
-        console.log(logFormatter(outputGitLabBackup.log, logLevel));
+        };
     }
 
     // This job will only run if you provide a other_git_repo_list.json file
     // with paths to otherwise hosted git repositories
+    let jobBackupGitRepos: Job | undefined;
     const otherGitRepoListFilePath = path.join(__dirname, "..", "other_git_repo_list.json");
     if (fsOld.existsSync(otherGitRepoListFilePath)) {
         const otherGitRepoList = await JSON.parse((
             await fsp.readFile(otherGitRepoListFilePath)).toString()) as Git.Repo[];
 
-        const outputOtherGitReposBackup = await backupHub.runJob({
+        jobBackupGitRepos = {
             data: {
                 backupDirs: ["${...BACKUP_DRIVE}"],
                 dryRun,
@@ -332,9 +320,73 @@ const allLogs: Log.Entry[] = [];
                 } as Git.Instruction
             ],
             name: "Backup other Git repositories"
-        });
-        allLogs.push(... outputOtherGitReposBackup.log);
-        console.log(logFormatter(outputOtherGitReposBackup.log, logLevel));
+        };
+    }
+
+    if (runJobsInParallel) {
+        backupHub.addJob(jobBackupHomeDir);
+        backupHub.addJob(jobBackupOneDrive);
+        backupHub.addJob(jobBackupGoogleDrive);
+        backupHub.addJob(jobBackupHostFiles);
+        backupHub.addJob(jobBackupVsCodeSettings);
+        backupHub.addJob(jobBackupPacmanPackageList);
+        if (jobBackupGitRepos) {
+            backupHub.addJob(jobBackupGitRepos);
+        }
+        if (jobBackupGitHubRepos) {
+            backupHub.addJob(jobBackupGitHubRepos);
+        }
+        if (jobBackupGitLabRepos) {
+            backupHub.addJob(jobBackupGitLabRepos);
+        }
+
+        const outputRunJobs = await backupHub.runJobs();
+        for (const outputRunJob of outputRunJobs) {
+            allLogs.push(... outputRunJob.log);
+            console.log(logFormatter(outputRunJob.log, logLevel));
+        }
+    } else {
+        const outputBackupHomeDir = await backupHub.runJob(jobBackupHomeDir);
+        allLogs.push(... outputBackupHomeDir.log);
+        console.log(logFormatter(outputBackupHomeDir.log, logLevel));
+
+        const outputBackupOneDriveDir = await backupHub.runJob(jobBackupOneDrive);
+        allLogs.push(... outputBackupOneDriveDir.log);
+        console.log(logFormatter(outputBackupOneDriveDir.log, logLevel));
+
+        const outputBackupGoogleDriveDir = await backupHub.runJob(jobBackupGoogleDrive);
+        allLogs.push(... outputBackupGoogleDriveDir.log);
+        console.log(logFormatter(outputBackupGoogleDriveDir.log, logLevel));
+
+        const outputBackupFiles = await backupHub.runJob(jobBackupHostFiles);
+        allLogs.push(... outputBackupFiles.log);
+        console.log(logFormatter(outputBackupFiles.log, logLevel));
+
+        const outputBackupVsCodeSettings = await backupHub.runJob(jobBackupVsCodeSettings);
+        allLogs.push(... outputBackupVsCodeSettings.log);
+        console.log(logFormatter(outputBackupVsCodeSettings.log, logLevel));
+
+        const outputBackupPacmanPackageList = await backupHub.runJob(jobBackupPacmanPackageList);
+        allLogs.push(... outputBackupPacmanPackageList.log);
+        console.log(logFormatter(outputBackupPacmanPackageList.log, logLevel));
+
+        if (jobBackupGitRepos) {
+            const outputOtherGitReposBackup = await backupHub.runJob(jobBackupGitRepos);
+            allLogs.push(... outputOtherGitReposBackup.log);
+            console.log(logFormatter(outputOtherGitReposBackup.log, logLevel));
+        }
+
+        if (jobBackupGitHubRepos) {
+            const outputOtherGitReposBackup = await backupHub.runJob(jobBackupGitHubRepos);
+            allLogs.push(... outputOtherGitReposBackup.log);
+            console.log(logFormatter(outputOtherGitReposBackup.log, logLevel));
+        }
+
+        if (jobBackupGitLabRepos) {
+            const outputOtherGitReposBackup = await backupHub.runJob(jobBackupGitLabRepos);
+            allLogs.push(... outputOtherGitReposBackup.log);
+            console.log(logFormatter(outputOtherGitReposBackup.log, logLevel));
+        }
     }
 
     // Write logs to file

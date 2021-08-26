@@ -17,7 +17,7 @@ export namespace Config {
             value: string | string[]
         }
 
-        export interface Method<FUNCTION_PARAMETER extends any[], FUNCTION_OUTPUT> {
+        export interface Method<FUNCTION_PARAMETER extends any[] = any[], FUNCTION_OUTPUT = any> {
             name: string
             description: string
             function: (parameter: FUNCTION_PARAMETER) => Promise<FUNCTION_OUTPUT>

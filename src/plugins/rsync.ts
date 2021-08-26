@@ -1,6 +1,7 @@
 import {
-    checkAndCreateBackupDir, commandCanBeFound, createLogEntryGenerator, fileExists,
-    resolveVariableString, runShellCommand
+    checkAndCreateBackupDir, commandCanBeFound, createLogEntryGenerator,
+    createVersionStringPlugin, fileExists, resolveVariableString,
+    runShellCommand
 } from "../api/helper";
 import { debuglog } from "util";
 import type { Log } from "../api/log";
@@ -12,6 +13,10 @@ export type { Rsync } from "./rsync/types";
 
 
 export const pluginName = "Rsync";
+export const pluginVersionNumbers: Plugin.Info.Version = {
+    major: 1
+};
+export const pluginVersion = createVersionStringPlugin(pluginVersionNumbers);
 export enum RsyncCommand {
     SYNCHRONIZE = "SYNCHRONIZE",
     CUSTOM = "CUSTOM"
@@ -123,7 +128,9 @@ const rsyncPlugin: Plugin = {
                     logs.push(... output.logs);
                 }
             } catch (err) {
-                const pluginError: PluginError = err as Error;
+                const pluginError: PluginError = {
+                    ... err as Error, pluginName, pluginVersion
+                };
                 pluginError.message = `Plugin ${pluginName}: ${pluginError.message}`;
                 const errLogs = (err as PluginError)?.logs;
                 pluginError.logs = errLogs !== undefined ? logs.concat(errLogs) : logs;
@@ -138,14 +145,17 @@ const rsyncPlugin: Plugin = {
 
             try {
                 if (await commandCanBeFound(shellCommand)) {
-                    logs.push(createLogEntry(`The '${shellCommand}' command was found`));
+                    logs.push(createLogEntry(`The '${shellCommand}' command was found`,
+                        LogLevel.DEBUG));
                 } else {
                     logs.push(createLogEntry(`The '${shellCommand}' command was not found`,
                         LogLevel.ERROR));
                     throw Error(`The '${shellCommand}' command was not found`);
                 }
             } catch (err) {
-                const pluginError: PluginError = err as Error;
+                const pluginError: PluginError = {
+                    ... err as Error, pluginName, pluginVersion
+                };
                 pluginError.message = `Plugin ${pluginName}: ${pluginError.message}`;
                 const errLogs = (err as PluginError)?.logs;
                 pluginError.logs = errLogs !== undefined ? logs.concat(errLogs) : logs;
@@ -156,9 +166,8 @@ const rsyncPlugin: Plugin = {
             return { log: logs };
         }
     },
-    version: {
-        major: 1
-    }
+    version: pluginVersion,
+    versionNumbers: { ... pluginVersionNumbers }
 };
 
 export default rsyncPlugin;
