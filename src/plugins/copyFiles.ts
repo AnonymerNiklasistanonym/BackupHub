@@ -4,7 +4,6 @@ import {
 import type { CopyFiles } from "./copyFiles/types";
 export type { CopyFiles } from "./copyFiles/types";
 import { debuglog } from "util";
-import { promises as fs } from "fs";
 import fsExtra from "fs-extra";
 import glob from "glob";
 import type { Log } from "../api/log";

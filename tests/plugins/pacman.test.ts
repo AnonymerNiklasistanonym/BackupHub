@@ -1,12 +1,12 @@
 /* eslint-disable no-duplicate-imports */
+import { describe, Suite } from "mocha";
 import chai from "chai";
-import { describe } from "mocha";
 import type { PacmanPackageEntry } from "../../src/plugins/pacman";
 import { parsePacmanPackageEntry } from "../../src/plugins/pacman";
 
 
-export default (): Mocha.Suite => {
-    return describe("parsePacmanPackageEntry [pacman]", () => {
+export const pacmanTestSuite = (): Suite =>
+    describe("pacman", () => {
         it("parsePacmanPackageEntry", () => {
 
             const pacmanPackageEntryString = [
@@ -165,4 +165,3 @@ export default (): Mocha.Suite => {
             );
         });
     });
-};

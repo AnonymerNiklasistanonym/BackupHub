@@ -1,11 +1,10 @@
+import { describe, Suite } from "mocha";
 import chai from "chai";
-import { describe } from "mocha";
-import { resolveVariableString } from "../../src/api/helper";
+import { resolveVariableString } from "../../../src/api/helper";
 
-
-export default (): Mocha.Suite => {
-    return describe("variableResolution [helper]", () => {
-        it("resolveVariableString", () => {
+export const variableResolutionTestSuite = (): Suite =>
+    describe("variableResolution", () => {
+        it("single value variables", () => {
 
             chai.expect(resolveVariableString([
                 { name: "SOURCE_DIR", value: "~" }
@@ -28,7 +27,9 @@ export default (): Mocha.Suite => {
                 "TestValueTesttestTestValue1TestValuecdefgTestValue1",
                 "Multiple single value variables with multiple occurrences"
             );
+        });
 
+        it("multi value variables", () => {
             chai.expect(resolveVariableString([
                 { name: "Test", value: ["TestValue"] },
                 { name: "Test1", value: "TestValue1" }
@@ -58,6 +59,9 @@ export default (): Mocha.Suite => {
                 ],
                 "Mixed single and multiple value variables that resolve to each other"
             );
+        });
+
+        it("detect circular dependencies", () => {
 
             chai.expect(() => {
                 resolveVariableString([
@@ -98,4 +102,3 @@ export default (): Mocha.Suite => {
 
         });
     });
-};
