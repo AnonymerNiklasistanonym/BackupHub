@@ -14,19 +14,19 @@ export const logFormatterTestSuite = (): Suite =>
 
         it("check format", () => {
             chai.expect(logFormatter([
-                { content: "a", creator: "bb", time: new Date(1995, 11, 17) }
+                { content: "a", creator: "bb", time: new Date(Date.UTC(1995, 11, 17)) }
             ])).to.be.equals(
-                "1995-12-16T23:00:00.000Z [INFO] bb: a",
-                "blabla"
+                "1995-12-17T00:00:00.000Z [INFO] bb: a",
+                "single entry"
             );
 
             chai.expect(logFormatter([
-                { content: "a", creator: "bb", time: new Date(1995, 11, 17) },
-                { content: "b", creator: "cc", time: new Date(1995, 11, 18) }
+                { content: "a", creator: "bb", time: new Date(Date.UTC(1995, 11, 17)) },
+                { content: "b", creator: "cc", time: new Date(Date.UTC(1995, 11, 18)) }
             ])).to.be.equals(
-                "1995-12-16T23:00:00.000Z [INFO] bb: a\n" +
-                "1995-12-17T23:00:00.000Z [INFO] cc: b",
-                "blabla"
+                "1995-12-17T00:00:00.000Z [INFO] bb: a\n" +
+                "1995-12-18T00:00:00.000Z [INFO] cc: b",
+                "multiple entries"
             );
         });
     });
