@@ -74,9 +74,11 @@ backup_home_directory
 .config/Android Open Source Project
 .config/audacious
 .config/autostart
+.config/akonadi
 .config/balena-etcher
 .config/balena-etcher-electron
 .config/blender
+.config/bitburner
 .config/bunkus.org
 .config/catfish
 .config/cef_user_data
@@ -100,6 +102,7 @@ backup_home_directory
 .config/Electron
 .config/enchant
 .config/falkon
+.config/fontconfig
 .config/fontforge
 .config/FreeCAD
 .config/galculator
@@ -113,14 +116,17 @@ backup_home_directory
 .config/Google
 .config/GottCode
 .config/google-chrome
+.config/goverlay
 .config/gscan2pdfrc
 .config/gtk-2.0
 .config/gtk-3.0
+.config/guvcview2
 .config/htop
 .config/ilias-buddy-desktop
 .config/inkscape
 .config/INRIA
 .config/Insomnia
+.config/insight-nodejs
 .config/JetBrains
 .config/jgit
 .config/JourneyDownOne
@@ -154,8 +160,17 @@ backup_home_directory
 .config/Natron-qt.conf
 .config/neofetch
 .config/Notepadqq
+.config/marktext/Local Storage
+.config/marktext/GPUCache
+.config/marktext/Crashpad
+.config/libaccounts-glib
+.config/calibre
+.config/OpenRGB/logs
+.config/marktext/Code Cache
+.config/marktext/window-state.json
 .config/obs-studio/logs
 .config/obs-studio/profiler_data
+.config/obs-studio/plugin_config
 .config/octave
 .config/octopi
 .config/okular.kmessagebox
@@ -219,6 +234,83 @@ backup_home_directory
 .config/kconf_updaterc
 .config/kritadisplayrc
 .config/LANSConfig.conf
+.config/akonadi_akonotes_resource_0rc
+.config/akonadi_contactrc
+.config/akonadi_contacts_resource_0rc
+.config/akonadi_google_resource_0rc
+.config/akonadi_ical_resource_0rc
+.config/akonadi_indexing_agentrc
+.config/akonadi_maildir_resource_0rc
+.config/akonadi-firstrunrc
+.config/akonadi-migrationrc
+.config/akregatorrc
+.config/arkrc
+.config/baloofileinformationrc
+.config/baloofilerc
+.config/bluedevilglobalrc
+.config/breezerc
+.config/corectrlrc
+.config/DB Browser for SQLiterc
+.config/deepin-musicrc
+.config/deepin-musicrc.lock
+.config/defaultcalendarrc
+.config/dolphinrc
+.config/emaildefaults
+.config/emailidentities
+.config/eventviewsrc
+.config/filetypesrc
+.config/gtkrc
+.config/gtkrc-2.0
+.config/gwenviewrc
+.config/kactivitymanagerd-statsrc
+.config/kactivitymanagerd-switcher
+.config/kactivitymanagerdrc
+.config/kalendaracrc
+.config/katemetainfos
+.config/katerc
+.config/kateschemarc
+.config/kcalcrc
+.config/kcminputrc
+.config/kcmshell5rc
+.config/kdeconnect.apprc
+.config/kded_device_automounterrc
+.config/kded5rc
+.config/kfontinstuirc
+.config/kglobalshortcutsrc
+.config/khelpcenterrc
+.config/khotkeysrc
+.config/kiorc
+.config/kmail2rc
+.config/kmixrc
+.config/knotesrc
+.config/korganizerrc
+.config/kritarc
+.config/krunnerrc
+.config/kscreenlockerrc
+.config/ksmserverrc
+.config/ktimezonedrc
+.config/kwalletrc
+.config/kwin_rules_dialogrc
+.config/kwinrc
+.config/kwinrulesrc
+.config/kxkbrc
+.config/obsrc
+.config/plasma-localerc
+.config/plasma-org.kde.plasma.desktop-appletsrc
+.config/plasma.emojierrc
+.config/plasmanotifyrc
+.config/plasmarc
+.config/plasmashellrc
+.config/powermanagementprofilesrc
+.config/print-manager
+.config/sddmthemeinstallerrc
+.config/soffice.binrc
+.config/specialmailcollectionsrc
+.config/spectaclerc
+.config/systemmonitorrc
+.config/systemsettingsrc
+.config/trashrc
+.config/webengineurlinterceptoradblockrc
 .dbus
 .debug
 .designer
@@ -324,6 +416,7 @@ snap
 .xsession-errors
 .xsession-errors.old
 .zcompdump
+.zhistory
 .zshrc
 steam-*.log
 
@@ -351,3 +444,6 @@ VirtualBox VMs
 
 # Music
 Music/already_backed_up
+
+# Other
+nltk_data
