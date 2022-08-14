@@ -54,7 +54,7 @@ const allLogs: Log.Entry[] = [];
         await backupHub.addPlugin(git),
         await backupHub.addPlugin(github),
         await backupHub.addPlugin(gitlab),
-        await backupHub.addPlugin(grive),
+        // await backupHub.addPlugin(grive),
         await backupHub.addPlugin(pacman),
         await backupHub.addPlugin(rsync)
     ];
@@ -68,7 +68,7 @@ const allLogs: Log.Entry[] = [];
         description: "The external backup drives",
         name: "BACKUP_DRIVE",
         value: [
-            "/run/media/${CURRENT_USER}/Backup 4TB",
+            "/run/media/${CURRENT_USER}/Backup-4TB-2022",
             "/run/media/${CURRENT_USER}/Backup #1"
         ]
     });
@@ -134,20 +134,13 @@ const allLogs: Log.Entry[] = [];
         name: "Backup OneDrive directory"
     };
 
-    const jobBackupGoogleDrive: Job = {
+    const jobBackupOsuLazer: Job = {
         data: {
-            backupDirs: ["${...BACKUP_DRIVE}/Cloud/GoogleDrive (${BACKUP_USER} - latest)"],
+            backupDirs: ["${...BACKUP_DRIVE}/Games/osu_lazer"],
             dryRun,
-            sourceDir: "${MOUNTED_DISC_HOME_DIR}/${BACKUP_USER}/Documents/GoogleDrive"
+            sourceDir: "${MOUNTED_DISC_HOME_DIR}/${BACKUP_USER}/.local/share/osu"
         },
         instructions: [
-            {
-                command: GriveCommand.SYNCHRONIZE,
-                options: {
-                    googleDriveDir: "${SOURCE_DIR}"
-                },
-                plugin: "Grive"
-            } as Grive.Instruction,
             {
                 command: RsyncCommand.SYNCHRONIZE,
                 options: {
@@ -157,8 +150,34 @@ const allLogs: Log.Entry[] = [];
                 plugin: "Rsync"
             } as Rsync.Instruction
         ],
-        name: "Backup GoogleDrive directory"
+        name: "Backup osu!lazer directory"
     };
+
+    // const jobBackupGoogleDrive: Job = {
+    //     data: {
+    //         backupDirs: ["${...BACKUP_DRIVE}/Cloud/GoogleDrive (${BACKUP_USER} - latest)"],
+    //         dryRun,
+    //         sourceDir: "${MOUNTED_DISC_HOME_DIR}/${BACKUP_USER}/Documents/GoogleDrive"
+    //     },
+    //     instructions: [
+    //         {
+    //             command: GriveCommand.SYNCHRONIZE,
+    //             options: {
+    //                 googleDriveDir: "${SOURCE_DIR}"
+    //             },
+    //             plugin: "Grive"
+    //         } as Grive.Instruction,
+    //         {
+    //             command: RsyncCommand.SYNCHRONIZE,
+    //             options: {
+    //                 backupDirs: ["${...BACKUP_DIR}/"],
+    //                 sourceDir: "${SOURCE_DIR}/"
+    //             },
+    //             plugin: "Rsync"
+    //         } as Rsync.Instruction
+    //     ],
+    //     name: "Backup GoogleDrive directory"
+    // };
 
     const jobBackupHostFiles: Job = {
         data: {
@@ -264,34 +283,34 @@ const allLogs: Log.Entry[] = [];
     let jobBackupGitLabRepos: Job | undefined;
     const gitlabCredentialsFilePath = path.join(__dirname, "..", "gitlab_credentials.json");
     if (fsOld.existsSync(gitlabCredentialsFilePath)) {
-        interface GitLabApiCredentials {
-            accountName: string
-            hostUrl: string
-            oauthToken: string
-        }
-        const gitlabApiCredentials = await JSON.parse((
-            await fsp.readFile(gitlabCredentialsFilePath)).toString()) as GitLabApiCredentials;
-        jobBackupGitLabRepos = {
-            data: {
-                backupDirs: ["${...BACKUP_DRIVE}"],
-                dryRun,
-                sourceDir: "${MOUNTED_DISC_HOME_DIR}/${BACKUP_USER}"
-            },
-            description: `based on the information of ${gitlabCredentialsFilePath}`,
-            instructions: [
-                {
-                    command: GitLabCommand.BACKUP_REPOS,
-                    options: {
-                        backupDirs: ["${...BACKUP_DIR}/BackupGitLabRepos_${BACKUP_USER}"],
-                        gitlabApiAccountName: gitlabApiCredentials.accountName,
-                        gitlabApiHostUrl: gitlabApiCredentials.hostUrl,
-                        gitlabApiOauthToken: gitlabApiCredentials.oauthToken
-                    },
-                    plugin: "GitLab"
-                } as GitLab.Instruction
-            ],
-            name: "Backup GitLab account connected repositories"
-        };
+        // interface GitLabApiCredentials {
+        //     accountName: string
+        //     hostUrl: string
+        //     oauthToken: string
+        // }
+        // const gitlabApiCredentials = await JSON.parse((
+        //     await fsp.readFile(gitlabCredentialsFilePath)).toString()) as GitLabApiCredentials;
+        // jobBackupGitLabRepos = {
+        //     data: {
+        //         backupDirs: ["${...BACKUP_DRIVE}"],
+        //         dryRun,
+        //         sourceDir: "${MOUNTED_DISC_HOME_DIR}/${BACKUP_USER}"
+        //     },
+        //     description: `based on the information of ${gitlabCredentialsFilePath}`,
+        //     instructions: [
+        //         {
+        //             command: GitLabCommand.BACKUP_REPOS,
+        //             options: {
+        //                 backupDirs: ["${...BACKUP_DIR}/BackupGitLabRepos_${BACKUP_USER}"],
+        //                 gitlabApiAccountName: gitlabApiCredentials.accountName,
+        //                 gitlabApiHostUrl: gitlabApiCredentials.hostUrl,
+        //                 gitlabApiOauthToken: gitlabApiCredentials.oauthToken
+        //             },
+        //             plugin: "GitLab"
+        //         } as GitLab.Instruction
+        //     ],
+        //     name: "Backup GitLab account connected repositories"
+        // };
     }
 
     // This job will only run if you provide a other_git_repo_list.json file
@@ -325,8 +344,9 @@ const allLogs: Log.Entry[] = [];
 
     if (runJobsInParallel) {
         backupHub.addJob(jobBackupHomeDir);
+        backupHub.addJob(jobBackupOsuLazer);
         backupHub.addJob(jobBackupOneDrive);
-        backupHub.addJob(jobBackupGoogleDrive);
+        // backupHub.addJob(jobBackupGoogleDrive);
         backupHub.addJob(jobBackupHostFiles);
         backupHub.addJob(jobBackupVsCodeSettings);
         backupHub.addJob(jobBackupPacmanPackageList);
@@ -350,13 +370,17 @@ const allLogs: Log.Entry[] = [];
         allLogs.push(... outputBackupHomeDir.log);
         console.log(logFormatter(outputBackupHomeDir.log, logLevel));
 
+        const outputBackupOsuLazer = await backupHub.runJob(jobBackupOsuLazer);
+        allLogs.push(... outputBackupOsuLazer.log);
+        console.log(logFormatter(outputBackupOsuLazer.log, logLevel));
+
         const outputBackupOneDriveDir = await backupHub.runJob(jobBackupOneDrive);
         allLogs.push(... outputBackupOneDriveDir.log);
         console.log(logFormatter(outputBackupOneDriveDir.log, logLevel));
 
-        const outputBackupGoogleDriveDir = await backupHub.runJob(jobBackupGoogleDrive);
-        allLogs.push(... outputBackupGoogleDriveDir.log);
-        console.log(logFormatter(outputBackupGoogleDriveDir.log, logLevel));
+        // const outputBackupGoogleDriveDir = await backupHub.runJob(jobBackupGoogleDrive);
+        // allLogs.push(... outputBackupGoogleDriveDir.log);
+        // console.log(logFormatter(outputBackupGoogleDriveDir.log, logLevel));
 
         const outputBackupFiles = await backupHub.runJob(jobBackupHostFiles);
         allLogs.push(... outputBackupFiles.log);

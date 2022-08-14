@@ -299,15 +299,20 @@ snap
 .dmrc
 .emulator_console_auth_token
 .esd_auth
+.fonts.conf
 .gitconfig
+.gtkrc-2.0
 .hdfview3.1.0
 .ICEauthority
+.lazarus
 .lesshst
+.nanorc
 .node_repl_history
 .npmrc
 .profile
 .pulse-cookie
 .python_history
+.renpy
 .steampath
 .steampid
 .viminfo
@@ -318,6 +323,9 @@ snap
 .xinitrc
 .xsession-errors
 .xsession-errors.old
+.zcompdump
+.zshrc
+steam-*.log
 
 .bash_history
 .bash_logout
