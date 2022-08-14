@@ -1,0 +1,100 @@
+# Maintainer: AnonymerNiklasistanonym <niklas.mikeler@gmail.com>
+_applicationname=backuphub
+#pkgname="$_applicationname"
+pkgname="$_applicationname-git"
+#pkgname="$_applicationname-bin"
+pkgver=1.0.16
+pkgrel=1
+pkgdesc='A custom Twitch chat bot'
+arch=('x86_64')
+url='https://github.com/AnonymerNiklasistanonym/BackupHub'
+license=('MIT')
+depends=('nodejs')
+#depends=()
+makedepends=('pandoc')
+provides=("$pkgname")
+conflicts=("$_applicationname" "$_applicationname-bin" "$_applicationname-git")
+_gitname="$_applicationname.git"
+#source=("$_gitname::git+$url#tag=v$pkgver")
+source=("$_gitname::git+$url#branch=main")
+#source=("$_applicationname.bin::$url/releases/download/v$pkgver/$_applicationname-v$pkgver-linux64-node-18"
+#        "$_applicationname.svg::$url/releases/download/v$pkgver/$_applicationname.svg")
+sha1sums=('SKIP')
+# Run the command 'sha1sum filename' to update them
+#sha1sums=('e49f1d23c634477f37969e671e5d445711c7dfdb'
+#          'edf7e74e76a630f853a3bf81b6eae96dcdf5b294')
+# Don't strip the symbols from the downloaded binary file since this breaks it
+#options=(!strip)
+_installdir="/opt/$_applicationname"
+_installdirbin="/usr/bin"
+_installdirdesktop="/usr/share/applications"
+_installdirman="/usr/share/man/man1"
+_defaultconfigdir="\$HOME/.local/share/$_applicationname"
+
+# Detailed version information (only necessary for git version of the package)
+pkgver() {
+  cd "$srcdir/$_gitname"
+  git describe --tags | grep '^v' | sed 's/\([^-]*-g\)/r\1/;s/-/./g' | cut -c2-
+}
+
+# Create all files necessary for installation (not necessary for bin version of the package)
+build() {
+  cd "$srcdir/$_gitname"
+  # Install (all - normal and build) dependencies
+  npm install
+  # Install additional dependencies
+  npm install uuid
+  # Compile application
+  npm run build
+  # Remove (build) dependencies
+  npm prune --production
+}
+
+# Define all files that should be installed
+package() {
+  # Go to the source directory
+  cd "$srcdir"
+  # Go to the cloned git directory inside the source directory
+  cd "$_gitname"
+  # Create a directory in /opt that contains all resources
+  install -Dd "$pkgdir$_installdir"
+  # Copy all necessary node dependencies to there
+  find node_modules -not -path "*/__pycache__/*" -exec install -D {} "$pkgdir$_installdir/"{} \;
+  # Copy the compiled application files
+  find dist -exec install -D {} "$pkgdir$_installdir/"{} \;
+  # Copy the package.json file
+  install -D package.json "$pkgdir$_installdir"
+  ## Copy the downloaded binary file (only necessary for bin version of the package)
+  #install -Dm 755 "$_applicationname.bin" "$pkgdir$_installdir"
+  # Copy the application icon file
+  install -Dm 644 "res/icons/$_applicationname.svg" "$pkgdir$_installdir"
+  #install -Dm 644 "$_applicationname.svg" "$pkgdir$_installdir"
+
+  # Create a bash file for the /usr/bin directory
+  echo -e "\
+#!/usr/bin/env bash\n\
+node \"$_installdir\" --config-dir \"$_defaultconfigdir\" \$@\n" > "$_applicationname"
+#\"$_installdir/$_applicationname.bin\" --config-dir \"$_defaultconfigdir\" \$@\n" > "$_applicationname"
+
+  # Copy the bash file to the /usr/bin directory
+  install -Dd "$pkgdir$_installdirbin"
+  install -Dm 755 "$_applicationname" "$pkgdir$_installdirbin"
+
+  # Create a directory for the .desktop files
+  install -Dd "$pkgdir$_installdirdesktop"
+  # Create a desktop file to the bash file
+  echo -e "\
+[Desktop Entry]\n\
+Version=1.0\n\
+Type=Application\n\
+Terminal=true\n\
+Exec=$_applicationname; read -n1 -p \"Press any key to exit.\"\n\
+Name=$_applicationname\n\
+Comment=$pkgdesc\n\
+Icon=$_installdir/$_applicationname.svg" > "$_applicationname.desktop"
+  install -Dm 644 "$_applicationname.desktop" "$pkgdir$_installdirdesktop"
+
+  # Create manpage
+  pandoc "installer/man.md" -s -t man -o "$_applicationname.1"
+  install -Dm 644 "$_applicationname.1" "$pkgdir$_installdirman/$_applicationname.1"
+}

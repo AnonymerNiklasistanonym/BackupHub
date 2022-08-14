@@ -28,7 +28,7 @@ import type { Rsync } from "./plugins/rsync";
 
 
 // Global run properties:
-const dryRun = true;
+const dryRun = false;
 const logLevel = LogLevel.INFO;
 const runJobsInParallel = true;
 
@@ -44,8 +44,51 @@ const allLogs: Log.Entry[] = [];
 
 
 (async (): Promise<void> => {
-    // Print program version
-    console.log(backupHub.version);
+    // Change the title of the process/terminal
+    process.title = `${backupHub.name} ${backupHub.version}`;
+
+    // Get additional command line arguments
+    // $ npm run start -- --argument
+    // $ node . --argument
+    // $ programName --argument
+    const commandLineArgs = process.argv.slice(2);
+
+    // Catch CLI version request
+    if (commandLineArgs.includes("--version")) {
+        console.log(backupHub.version);
+        return process.exit(0);
+    }
+
+    // Catch CLI help request
+    if (commandLineArgs.includes("--help")) {
+        console.log(
+            `${backupHub.name} [OPTIONS] CONFIG_FILE\n\nOptions:\nTODO`
+        );
+        return process.exit(0);
+    }
+
+    // Catch missing RGUMENT
+    if (commandLineArgs.length === 0) {
+        console.log(
+            "No configuration file was found"
+        );
+        return process.exit(1);
+    }
+    const configurationFile = commandLineArgs[0];
+
+    // Plugins
+    const plugins = new Map([
+        [ "abruneggOneDrive", abruneggOneDrive ],
+        [ "copyFiles", copyFiles ],
+        [ "git", git ],
+        [ "github", github ],
+        [ "gitlab", gitlab ],
+        [ "grive", grive ],
+        [ "pacman", pacman ],
+        [ "rsync", rsync ]
+    ]);
+
+    // process.exit(0);
 
     // Add plugin: (if provided it runs checks to verify integrity)
     const pluginLogs = [
@@ -53,8 +96,8 @@ const allLogs: Log.Entry[] = [];
         await backupHub.addPlugin(copyFiles),
         await backupHub.addPlugin(git),
         await backupHub.addPlugin(github),
-        await backupHub.addPlugin(gitlab),
-        await backupHub.addPlugin(grive),
+        // await backupHub.addPlugin(gitlab),
+        // await backupHub.addPlugin(grive),
         await backupHub.addPlugin(pacman),
         await backupHub.addPlugin(rsync)
     ];
@@ -93,8 +136,7 @@ const allLogs: Log.Entry[] = [];
     const jobBackupHomeDir: Job = {
         data: {
             backupDirs: ["${...BACKUP_DRIVE}/BackupManjaroDesktop/home_${BACKUP_USER}"],
-            dryRun,
-            sourceDir: "${MOUNTED_DISC_HOME_DIR}/${BACKUP_USER}"
+            dryRun
         },
         instructions: [
             {
@@ -102,7 +144,7 @@ const allLogs: Log.Entry[] = [];
                 options: {
                     backupDirs: ["${...BACKUP_DIR}/"],
                     excludeFrom: [path.join(__dirname, "..", "example_rsync_exclude_list.txt")],
-                    sourceDir: "${SOURCE_DIR}/"
+                    sourceDir: "${MOUNTED_DISC_HOME_DIR}/${BACKUP_USER}/"
                 },
                 plugin: "Rsync"
             } as Rsync.Instruction
@@ -113,8 +155,7 @@ const allLogs: Log.Entry[] = [];
     const jobBackupOneDrive: Job = {
         data: {
             backupDirs: ["${...BACKUP_DRIVE}/Cloud/OneDrive (${BACKUP_USER} - latest)"],
-            dryRun,
-            sourceDir: "${MOUNTED_DISC_HOME_DIR}/${BACKUP_USER}/OneDrive"
+            dryRun
         },
         instructions: [
             {
@@ -126,7 +167,7 @@ const allLogs: Log.Entry[] = [];
                 command: RsyncCommand.SYNCHRONIZE,
                 options: {
                     backupDirs: ["${...BACKUP_DIR}/"],
-                    sourceDir: "${SOURCE_DIR}/"
+                    sourceDir: "${MOUNTED_DISC_HOME_DIR}/${BACKUP_USER}/OneDrive/"
                 },
                 plugin: "Rsync"
             } as Rsync.Instruction
@@ -134,6 +175,7 @@ const allLogs: Log.Entry[] = [];
         name: "Backup OneDrive directory"
     };
 
+    /*
     const jobBackupGoogleDrive: Job = {
         data: {
             backupDirs: ["${...BACKUP_DRIVE}/Cloud/GoogleDrive (${BACKUP_USER} - latest)"],
@@ -159,13 +201,14 @@ const allLogs: Log.Entry[] = [];
         ],
         name: "Backup GoogleDrive directory"
     };
+    */
 
     const jobBackupHostFiles: Job = {
         data: {
             backupDirs: ["${...BACKUP_DRIVE}/BackupManjaroDesktop"],
-            dryRun,
-            sourceDir: "/etc"
+            dryRun
         },
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
         instructions: [
             {
                 command: CopyFilesCommand.COPY,
@@ -173,7 +216,7 @@ const allLogs: Log.Entry[] = [];
                     backupDirs: ["${...BACKUP_DIR}/host_files"],
                     deleteBackupDir: true,
                     glob: true,
-                    sourceFiles: ["${SOURCE_DIR}/hosts*"]
+                    sourceFiles: ["/etc/hosts*"]
                 },
                 plugin: "CopyFiles"
             } as CopyFiles.Instruction
@@ -181,12 +224,13 @@ const allLogs: Log.Entry[] = [];
         name: "Backup hosts files"
     };
 
-    const jobBackupVsCodeSettings: Job = {
+    const jobBackupVsCodeSettings: Job<Job.DefaultDataSourceDir> = {
         data: {
             backupDirs: ["${...BACKUP_DRIVE}/BackupManjaroDesktop"],
             dryRun,
             sourceDir: "${MOUNTED_DISC_HOME_DIR}/${BACKUP_USER}/.config/Code - Insiders/User"
         },
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
         instructions: [
             {
                 command: CopyFilesCommand.COPY,
@@ -210,14 +254,15 @@ const allLogs: Log.Entry[] = [];
     const jobBackupPacmanPackageList: Job = {
         data: {
             backupDirs: ["${...BACKUP_DRIVE}/BackupManjaroDesktop"],
-            dryRun,
-            sourceDir: "${MOUNTED_DISC_HOME_DIR}/${BACKUP_USER}"
+            dryRun
         },
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
         instructions: [
             {
                 command: PacmanCommand.GET_PACKAGE_LIST_JSON,
                 options: {
-                    jsonOutputFilePaths: ["${...BACKUP_DIR}/installed_programs_pacman_${BACKUP_USER}.json"]
+                    jsonOutputFilePaths: ["${...BACKUP_DIR}/installed_programs_pacman_${BACKUP_USER}.json"],
+                    sourceDir: "${MOUNTED_DISC_HOME_DIR}/${BACKUP_USER}"
                 },
                 plugin: "Pacman"
             } as Pacman.Instruction
@@ -239,8 +284,7 @@ const allLogs: Log.Entry[] = [];
         jobBackupGitHubRepos = {
             data: {
                 backupDirs: ["${...BACKUP_DRIVE}"],
-                dryRun,
-                sourceDir: "${MOUNTED_DISC_HOME_DIR}/${BACKUP_USER}"
+                dryRun
             },
             description: `based on the information of ${githubCredentialsListFilePath}`,
             instructions: [
@@ -251,13 +295,15 @@ const allLogs: Log.Entry[] = [];
                         githubApiAccountName: githubApiCredentials.accountName,
                         githubApiOauthToken: githubApiCredentials.oauthToken
                     },
-                    plugin: "GitHub"
+                    plugin: "GitHub",
+                    sourceDir: "${MOUNTED_DISC_HOME_DIR}/${BACKUP_USER}"
                 } as GitHub.Instruction
             ],
             name: "Backup GitHub account connected repositories"
         };
     }
 
+    /*
     // This job will only run if you provide a gitlab_credentials.json file with
     // your account name and an OAuth token (and host URL to support self hosted
     // instances)
@@ -293,6 +339,7 @@ const allLogs: Log.Entry[] = [];
             name: "Backup GitLab account connected repositories"
         };
     }
+    */
 
     // This job will only run if you provide a other_git_repo_list.json file
     // with paths to otherwise hosted git repositories
@@ -305,8 +352,7 @@ const allLogs: Log.Entry[] = [];
         jobBackupGitRepos = {
             data: {
                 backupDirs: ["${...BACKUP_DRIVE}"],
-                dryRun,
-                sourceDir: "/home/${BACKUP_USER}"
+                dryRun
             },
             description: `based on the information of ${otherGitRepoListFilePath}`,
             instructions: [
@@ -314,7 +360,8 @@ const allLogs: Log.Entry[] = [];
                     command: GitCommand.BACKUP_REPOS,
                     options: {
                         backupDirs: ["${...BACKUP_DIR}/BackupOtherGitRepos_${BACKUP_USER}"],
-                        gitRepoList: otherGitRepoList
+                        gitRepoList: otherGitRepoList,
+                        sourceDir: "/home/${BACKUP_USER}"
                     },
                     plugin: "Git"
                 } as Git.Instruction
@@ -326,7 +373,7 @@ const allLogs: Log.Entry[] = [];
     if (runJobsInParallel) {
         backupHub.addJob(jobBackupHomeDir);
         backupHub.addJob(jobBackupOneDrive);
-        backupHub.addJob(jobBackupGoogleDrive);
+        // backupHub.addJob(jobBackupGoogleDrive);
         backupHub.addJob(jobBackupHostFiles);
         backupHub.addJob(jobBackupVsCodeSettings);
         backupHub.addJob(jobBackupPacmanPackageList);
@@ -336,9 +383,9 @@ const allLogs: Log.Entry[] = [];
         if (jobBackupGitHubRepos) {
             backupHub.addJob(jobBackupGitHubRepos);
         }
-        if (jobBackupGitLabRepos) {
-            backupHub.addJob(jobBackupGitLabRepos);
-        }
+        // if (jobBackupGitLabRepos) {
+        //     backupHub.addJob(jobBackupGitLabRepos);
+        // }
 
         const outputRunJobs = await backupHub.runJobs();
         for (const outputRunJob of outputRunJobs) {
@@ -354,9 +401,9 @@ const allLogs: Log.Entry[] = [];
         allLogs.push(... outputBackupOneDriveDir.log);
         console.log(logFormatter(outputBackupOneDriveDir.log, logLevel));
 
-        const outputBackupGoogleDriveDir = await backupHub.runJob(jobBackupGoogleDrive);
-        allLogs.push(... outputBackupGoogleDriveDir.log);
-        console.log(logFormatter(outputBackupGoogleDriveDir.log, logLevel));
+        // const outputBackupGoogleDriveDir = await backupHub.runJob(jobBackupGoogleDrive);
+        // allLogs.push(... outputBackupGoogleDriveDir.log);
+        // console.log(logFormatter(outputBackupGoogleDriveDir.log, logLevel));
 
         const outputBackupFiles = await backupHub.runJob(jobBackupHostFiles);
         allLogs.push(... outputBackupFiles.log);
@@ -382,11 +429,11 @@ const allLogs: Log.Entry[] = [];
             console.log(logFormatter(outputOtherGitReposBackup.log, logLevel));
         }
 
-        if (jobBackupGitLabRepos) {
-            const outputOtherGitReposBackup = await backupHub.runJob(jobBackupGitLabRepos);
-            allLogs.push(... outputOtherGitReposBackup.log);
-            console.log(logFormatter(outputOtherGitReposBackup.log, logLevel));
-        }
+        // if (jobBackupGitLabRepos) {
+        //     const outputOtherGitReposBackup = await backupHub.runJob(jobBackupGitLabRepos);
+        //     allLogs.push(... outputOtherGitReposBackup.log);
+        //     console.log(logFormatter(outputOtherGitReposBackup.log, logLevel));
+        // }
     }
 
     // Write logs to file

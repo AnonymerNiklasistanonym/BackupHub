@@ -3,11 +3,10 @@
     "include": [
         "tools/**/*.ts",
         "tests/**/*.ts",
-        "docs/**/*.ts"
+        "docs/**/*.ts",
+        "scripts/**/*.ts"
     ],
     "files": [
-        ".eslintrc.js",
-        "src/create_json_schema.ts",
-        "src/config_type.ts"
+        ".eslintrc.js"
     ]
 }

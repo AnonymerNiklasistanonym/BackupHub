@@ -23,7 +23,7 @@ export const backupHubVersion = `${backupHubVersionMajor}.${backupHubVersionMino
 
 export class BackupHup {
     private jobs: Job[] = [];
-    private plugins: Plugin[] = [];
+    private plugins: Plugin<Job.DefaultDataSourceDir>[] = [];
     private variables: Config.Globals.Variable[] = [];
     private methods: Config.Globals.Method[] = [];
 
@@ -39,7 +39,7 @@ export class BackupHup {
      * @param plugin The plugin to be added
      * @returns Log messages
      */
-    public async addPlugin (plugin: Plugin): Promise<Log.Entry[]> {
+    public async addPlugin (plugin: Plugin<Job.DefaultDataSourceDir>): Promise<Log.Entry[]> {
         const logs: Log.Entry[] = [];
 
         // Replace previous plugin with the same name if found

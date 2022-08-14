@@ -1,0 +1,10 @@
+{
+  "watch": [
+    "src",
+    "tests",
+    "config.json",
+    "nodemon.json"
+  ],
+  "ext": "ts,js,json",
+  "exec": "npm run build:dev && node -r dotenv/config ."
+}

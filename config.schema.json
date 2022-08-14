@@ -1,128 +1,155 @@
 {
-    "type": "object",
-    "properties": {
-        "globals": {
-            "$ref": "#/definitions/ConfigFileGlobals",
-            "description": "Global configurations"
-        },
-        "jobs": {
-            "description": "Backup jobs",
-            "type": "array",
-            "items": {
-                "$ref": "#/definitions/Job<Job.DefaultData>"
-            }
-        }
-    },
-    "required": [
-        "globals",
-        "jobs"
-    ],
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "$ref": "#/definitions/ConfigFile",
     "definitions": {
+        "ConfigFile": {
+            "type": "object",
+            "properties": {
+                "$schema": {
+                    "type": "string",
+                    "description": "Pointer to the schema against which this document should be validated (Schema URL/path)."
+                },
+                "globals": {
+                    "$ref": "#/definitions/ConfigFileGlobals",
+                    "description": "Global configurations"
+                },
+                "jobs": {
+                    "type": "array",
+                    "items": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/definitions/Job"
+                            },
+                            {
+                                "$ref": "#/definitions/Job%3CRsync.Options%3E"
+                            }
+                        ]
+                    },
+                    "description": "Backup jobs"
+                }
+            },
+            "required": [
+                "globals",
+                "jobs"
+            ],
+            "additionalProperties": false
+        },
         "ConfigFileGlobals": {
             "type": "object",
             "properties": {
                 "variables": {
-                    "description": "Global variables",
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/Config.Globals.Variable"
-                    }
+                    },
+                    "description": "Global variables"
                 }
             },
             "required": [
                 "variables"
-            ]
+            ],
+            "additionalProperties": false
         },
         "Config.Globals.Variable": {
             "type": "object",
             "properties": {
                 "name": {
-                    "description": "Global variable name",
-                    "type": "string"
+                    "type": "string",
+                    "description": "Global variable name"
                 },
                 "description": {
-                    "description": "Global variable description",
-                    "type": "string"
+                    "type": "string",
+                    "description": "Global variable description"
                 },
                 "value": {
-                    "description": "Global variable value(s)",
                     "anyOf": [
+                        {
+                            "type": "string"
+                        },
                         {
                             "type": "array",
                             "items": {
                                 "type": "string"
                             }
-                        },
-                        {
-                            "type": "string"
                         }
-                    ]
+                    ],
+                    "description": "Global variable value(s)"
                 }
             },
             "required": [
                 "name",
                 "value"
-            ]
+            ],
+            "additionalProperties": false
         },
-        "Job<Job.DefaultData>": {
+        "Job": {
             "type": "object",
             "properties": {
                 "name": {
-                    "description": "Job name",
-                    "type": "string"
+                    "type": "string",
+                    "description": "Job name"
                 },
                 "description": {
-                    "description": "Job description",
-                    "type": "string"
+                    "type": "string",
+                    "description": "Job description"
                 },
                 "data": {
                     "$ref": "#/definitions/Job.DefaultData",
                     "description": "Job data"
                 },
                 "instructions": {
-                    "description": "Job instructions",
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/Instruction<any,any,string>"
-                    }
+                        "$ref": "#/definitions/Instruction%3Cany%2Cany%3E"
+                    },
+                    "description": "Job instructions"
                 }
             },
             "required": [
+                "name",
                 "data",
-                "instructions",
-                "name"
-            ]
+                "instructions"
+            ],
+            "additionalProperties": false
         },
         "Job.DefaultData": {
             "type": "object",
             "properties": {
                 "backupDirs": {
-                    "description": "The backup directories",
                     "type": "array",
                     "items": {
                         "type": "string"
-                    }
+                    },
+                    "description": "The backup directories"
                 },
                 "sourceDir": {
-                    "description": "The source directory",
-                    "type": "string"
+                    "type": "string",
+                    "description": "The source directory"
                 },
                 "dryRun": {
-                    "description": "Run the job without actually performing any create/write/copy/... actions",
-                    "type": "boolean"
+                    "type": "boolean",
+                    "description": "Run the job without actually performing any create/write/copy/... actions"
                 }
             },
             "required": [
                 "backupDirs",
                 "sourceDir"
-            ]
+            ],
+            "additionalProperties": false
         },
-        "Instruction<any,any,string>": {
+        "Instruction<any,any>": {
             "type": "object",
             "properties": {
                 "plugin": {
-                    "description": "Plugin name",
-                    "type": "string"
+                    "anyOf": [
+                        {
+                            "$ref": "#/definitions/OfficiallySupportedPluginList"
+                        },
+                        {
+                            "type": "string"
+                        }
+                    ],
+                    "description": "Plugin name"
                 },
                 "command": {
                     "description": "Plugin command"
@@ -132,11 +159,153 @@
                 }
             },
             "required": [
+                "plugin",
                 "command",
-                "options",
-                "plugin"
+                "options"
+            ],
+            "additionalProperties": false
+        },
+        "OfficiallySupportedPluginList": {
+            "anyOf": [
+                {
+                    "$ref": "#/definitions/Rsync.PluginName"
+                },
+                {
+                    "$ref": "#/definitions/AbruneggOneDrive.PluginName"
+                },
+                {
+                    "$ref": "#/definitions/Git.PluginName"
+                },
+                {
+                    "$ref": "#/definitions/GitHub.PluginName"
+                },
+                {
+                    "$ref": "#/definitions/GitLab.PluginName"
+                },
+                {
+                    "$ref": "#/definitions/Grive.PluginName"
+                },
+                {
+                    "$ref": "#/definitions/CopyFiles.PluginName"
+                },
+                {
+                    "$ref": "#/definitions/Pacman.PluginName"
+                },
+                {
+                    "type": "string",
+                    "const": "abc-die-katze"
+                }
             ]
+        },
+        "Rsync.PluginName": {
+            "type": "string",
+            "const": "Rsync"
+        },
+        "AbruneggOneDrive.PluginName": {
+            "type": "string",
+            "const": "AbruneggOneDrive"
+        },
+        "Git.PluginName": {
+            "type": "string",
+            "const": "Git"
+        },
+        "GitHub.PluginName": {
+            "type": "string",
+            "const": "GitHub"
+        },
+        "GitLab.PluginName": {
+            "type": "string",
+            "const": "GitLab"
+        },
+        "Grive.PluginName": {
+            "type": "string",
+            "const": "Grive"
+        },
+        "CopyFiles.PluginName": {
+            "type": "string",
+            "const": "CopyFiles"
+        },
+        "Pacman.PluginName": {
+            "type": "string",
+            "const": "Pacman"
+        },
+        "Job<Rsync.Options>": {
+            "type": "object",
+            "properties": {
+                "name": {
+                    "type": "string",
+                    "description": "Job name"
+                },
+                "description": {
+                    "type": "string",
+                    "description": "Job description"
+                },
+                "data": {
+                    "$ref": "#/definitions/Rsync.Options",
+                    "description": "Job data"
+                },
+                "instructions": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/Instruction%3Cany%2Cany%3E"
+                    },
+                    "description": "Job instructions"
+                }
+            },
+            "required": [
+                "name",
+                "data",
+                "instructions"
+            ],
+            "additionalProperties": false
+        },
+        "Rsync.Options": {
+            "type": "object",
+            "properties": {
+                "sourceDir": {
+                    "type": "string",
+                    "description": "Directory that should be synced"
+                },
+                "backupDirs": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "description": "Directory backup locations"
+                },
+                "verbose": {
+                    "type": "boolean",
+                    "description": "Option: \"-v\"/\"--verbose\"    to get a visual progress bar"
+                },
+                "recursive": {
+                    "type": "boolean",
+                    "description": "Option: \"-r\"/\"--recursive\"  to recurse into directories"
+                },
+                "archive": {
+                    "type": "boolean",
+                    "description": "Option: \"-a\"/\"--archive\"    to preserve the date, ownership, permissions, groups"
+                },
+                "delete": {
+                    "type": "boolean",
+                    "description": "Option: \"--delete\"          to delete deleted files in destination directory"
+                },
+                "deleteExcluded": {
+                    "type": "boolean",
+                    "description": "Option: \"--delete-excluded\" to also delete excluded files in destination directory"
+                },
+                "excludeFrom": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "description": "Option: \"--exclude-from 'rsync_exclude_list.txt'\" to ignore certain files from getting a backup"
+                }
+            },
+            "required": [
+                "sourceDir",
+                "backupDirs"
+            ],
+            "additionalProperties": false
         }
-    },
-    "$schema": "http://json-schema.org/draft-07/schema#"
+    }
 }

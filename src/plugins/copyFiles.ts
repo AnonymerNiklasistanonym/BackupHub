@@ -1,16 +1,17 @@
 import {
     checkAndCreateBackupDir, createLogEntryGenerator, createVersionStringPlugin, resolveVariableString
 } from "../api/helper";
-import type { CopyFiles } from "./copyFiles/types";
-export type { CopyFiles } from "./copyFiles/types";
 import { debuglog } from "util";
 import fsExtra from "fs-extra";
 import glob from "glob";
-import type { Log } from "../api/log";
 import { LogLevel } from "../api/logLevel";
 import path from "path";
-import type { Plugin } from "../api/plugin";
 import { PluginError } from "../api/error";
+// Type imports
+import type { CopyFiles } from "./copyFiles/types";
+import type { Job } from "../api/backupHub";
+import type { Log } from "../api/log";
+import type { Plugin } from "../api/plugin";
 
 
 export const pluginName = "CopyFiles";
@@ -28,7 +29,7 @@ const debug = debuglog("app-plugin-copyFiles");
 const createLogEntry = createLogEntryGenerator(debug, pluginName);
 
 
-const copyFilesPlugin: Plugin = {
+const copyFilesPlugin: Plugin<Job.DefaultDataSourceDir> = {
     name: pluginName,
     routines: {
         // eslint-disable-next-line complexity

@@ -1,17 +1,13 @@
 import type { Instruction as ApiInstruction } from "../../api/instruction";
+import type { Job } from "../../api/job";
 import type { RsyncCommand } from "../rsync";
 
-
 export namespace Rsync {
-    export interface Options {
+    export interface Options extends Job.DefaultData {
         /**
          * Directory that should be synced
          */
         sourceDir: string
-        /**
-         * Directory backup locations
-         */
-        backupDirs: string[]
         /**
          * Option: "-v"/"--verbose"    to get a visual progress bar
          */

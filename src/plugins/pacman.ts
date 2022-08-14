@@ -6,11 +6,12 @@ import type { Log, Plugin } from "../api/backupHub";
 import { debuglog } from "util";
 import { promises as fs } from "fs";
 import { LogLevel } from "../api/logLevel";
-import type { Pacman } from "./pacman/types";
-export type { Pacman } from "./pacman/types";
 import path from "path";
-import { PluginError } from "../api/error";
 import { resolveVariableString } from "../api/helper/resolveVariableString";
+// Type imports
+import type { Job } from "../api/backupHub";
+import type { Pacman } from "./pacman/types";
+import type { PluginError } from "../api/error";
 
 
 export const pluginName = "Pacman";
@@ -143,7 +144,7 @@ export const parsePacmanPackageEntry = (pacmanOutThing: string): PacmanPackageEn
     return empty ? [] : [outObject];
 };
 
-const pacmanPlugin: Plugin = {
+const pacmanPlugin: Plugin<Job.DefaultDataSourceDir> = {
     name: pluginName,
     routines: {
         // eslint-disable-next-line complexity

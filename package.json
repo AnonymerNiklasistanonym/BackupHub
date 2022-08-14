@@ -1,5 +1,5 @@
 {
-  "name": "backup_hub",
+  "name": "backuphub",
   "version": "1.0.2",
   "private": true,
   "description": "Cross platform program for easy backups and good plugin support.",
@@ -19,30 +19,45 @@
     "name": "AnonymerNiklasistanonym",
     "url": "https://github.com/AnonymerNiklasistanonym"
   },
-  "main": "dist/index.js",
+  "main": "dist",
   "bin": "dist/index.js",
+  "pkg": {
+      "scripts": [
+          "dist/**/*.js"
+      ],
+      "assets": [],
+      "outputPath": "./bin"
+  },
+  "directories": {
+      "test": "test"
+  },
+  "engines": {
+      "node": ">=18"
+  },
   "scripts": {
-    "createJsonSchema": "ts-node src/create_json_schema.ts",
-    "build": "npm-run-all build:api",
-    "build:api": "npm-run-all tsc",
     "clean": "ts-node tools/cleanFiles",
-    "coverage": "nyc --reporter=html --reporter=text npm run test",
     "coverage:html:view": "ts-node ./tests/openCoverage",
-    "dev": "cross-env NODE_DEBUG=app* NODE_ENV=development npm-run-all build start",
-    "dev:watch": "nodemon --watch src -e ts,json --exec npm run dev",
-    "docs": "npm-run-all lint:docs todo typedoc",
-    "docs:watch": "nodemon --watch src -e ts --exec npm-run-all docs",
-    "docs:view": "ts-node ./docs/openDocs",
     "lint-fix": "eslint -c .eslintrc.js --ext .ts src tools docs tests --fix",
     "lint": "npm-run-all lint:api lint:docs lint:tests",
     "lint:api": "eslint -c .eslintrc.js --ext .ts src tools",
     "lint:docs": "eslint -c .eslintrc.js --ext .ts docs",
     "lint:tests": "eslint -c .eslintrc.js --ext .ts tests",
-    "start": "node .",
-    "test": "mocha --exit --require ts-node/register tests/*.test*.ts",
     "todo": "ts-node ./docs/createTodoPage",
-    "tsc": "tsc",
-    "typedoc": "ts-node ./docs/createDocs"
+    "start": "node .",
+    "start:dev": "cross-env NODE_PATH=./dist NODE_ENV=production node .",
+    "prebuild": "rimraf ./dist/*",
+    "build": "tsc",
+    "package:windows": "pkg --target node18-win-x64 .",
+    "create:examples": "ts-node scripts/createExampleFiles.ts",
+    "create:jsonSchemas": "ts-node scripts/createJsonSchemaFiles.ts",
+    "create:manPage": "ts-node scripts/createManPageFile.ts",
+    "create:windowsInstallerConfig": "ts-node scripts/createWindowsInstallerConfigFile.ts",
+    "package:linux": "pkg --target node18-linux-x64 .",
+    "test": "cross-env NODE_PATH=. nyc mocha -- \"test/**/*.test.ts\"",
+    "docs": "typedoc --tsconfig tsconfig.json",
+    "dev": "cross-env NODE_PATH=./dist nodemon --verbose",
+    "build:dev": "tsc --sourceMap --removeComments false --pretty",
+    "mocha": "cross-env NODE_PATH=. mocha -r dotenv/config"
   },
   "dependencies": {
     "@gitbeaker/node": "^32.2.0",
@@ -63,7 +78,7 @@
     "chai": "^4.3.4",
     "cross-env": "^7.0.3",
     "eslint": "^7.32.0",
-    "eslint-plugin-jsdoc": "^36.0.8",
+    "eslint-plugin-jsdoc": "^39.3.3",
     "eslint-plugin-prefer-arrow": "^1.2.3",
     "glob": "^7.1.7",
     "leasot": "^12.0.0",
@@ -71,17 +86,13 @@
     "nodemon": "^2.0.12",
     "npm-run-all": "^4.1.5",
     "nyc": "^15.1.0",
+    "pkg": "^5.8.0",
+    "ts-json-schema-generator": "^1.0.0",
     "ts-loader": "^9.2.5",
     "ts-node": "^10.2.1",
     "tslint": "^6.1.3",
     "typedoc": "^0.21.6",
     "typescript": "4.3.5",
     "typescript-json-schema": "^0.50.1"
-  },
-  "pkg": {
-    "assets": [
-      "dist/**/*",
-      ".env"
-    ]
   }
 }

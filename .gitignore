@@ -11,3 +11,34 @@ keys
 github_credentials.json
 gitlab_credentials.json
 other_git_repo_list.json
+
+
+# Dist/Build directories
+dist/
+
+# Cache files
+tmp/
+.eslintcache
+
+# Private secret files
+config.json
+
+# Documentation
+docs
+test.json
+
+# IDE files
+.vscode
+
+# Binary builds
+bin
+
+# makepkg builds
+installer/backuphub*
+
+# Installer files
+!installer/*.bat
+installer/pkg
+installer/src
+installer/*.1
+config.json

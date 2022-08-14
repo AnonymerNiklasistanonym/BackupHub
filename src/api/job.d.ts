@@ -13,13 +13,15 @@ export namespace Job {
          */
         backupDirs: string[]
         /**
-         * The source directory
-         */
-        sourceDir: string
-        /**
          * Run the job without actually performing any create/write/copy/... actions
          */
         dryRun?: boolean
+    }
+    export interface DefaultDataSourceDir extends DefaultData {
+        /**
+         * The source directory
+         */
+        sourceDir: string
     }
 
 }

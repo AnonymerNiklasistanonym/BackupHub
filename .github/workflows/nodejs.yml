@@ -3,25 +3,37 @@
 
 name: Node.js CI
 
-# Controls when the action will run.
 on:
-  # Triggers the workflow on push or pull request events but only for the main branch
+  # Run CI when a new version tag is created
+  create:
+    tags:
+      - v*
+  # Run CI when a new commit is pushed
   push:
     branches: [ main, dev ]
+  # Run CI when a new pull request is created
   pull_request:
     branches: [ main, dev ]
 
-  # Allows to run this workflow manually from the Actions tab
-  workflow_dispatch:
-
 jobs:
-  build:
 
-    runs-on: ubuntu-latest
+
+  build:
 
     strategy:
       matrix:
-        node-version: [16.x]
+        node-version: [18.x]
+        os: [ubuntu-latest,windows-latest]
+        include:
+          - os: ubuntu-latest
+            os-name: linux
+            binary-name: backuphub
+          - os: windows-latest
+            os-name: windows
+            binary-name: backuphub.exe
+            binary-name-installer: backuphub_setup.exe
+
+    runs-on: ${{ matrix.os }}
 
     steps:
     - uses: actions/checkout@v2
@@ -29,27 +41,71 @@ jobs:
       uses: actions/setup-node@v1
       with:
         node-version: ${{ matrix.node-version }}
-    - name: Install dependencies
+    - name: Install dependencies (apt)
+      if: matrix.os == 'ubuntu-latest'
+      run: sudo apt install graphviz pandoc
+    - name: Install dependencies (choco)
+      if: matrix.os == 'windows-latest'
+      run: choco install graphviz nsis pandoc
+    - name: Install dependencies (nsis-plugins)
+      if: matrix.os == 'windows-latest'
+      run: |
+        $EnVarPluginArchive = Join-Path "installer" (Join-Path "windows_installer" "EnVar.zip")
+        $NsisDir = Join-Path "${env:ProgramFiles(x86)}" "NSIS"
+        Expand-Archive $EnVarPluginArchive -DestinationPath $NsisDir -Force
+    - name: Install dependencies (npm)
       run: npm ci
-    - name: Run tests
+    - name: Run tests and see code coverage
       run: npm run test
-    - name: Check test coverage
-      run: npm run coverage
-    - name: Check if the default script can be built
+    - name: Build the bot
       run: npm run build
     - name: Lint the code
       run: npm run lint
-      env:
-        CI: true
+    - name: Create documentation
+      run: npm run docs
+    - name: Create files
+      run: |
+        npm run create:examples
+        npm run create:jsonSchemas
+        npm run create:manPage
+        npm run create:windowsInstallerConfig
+    - name: Create binary release
+      run: npm run package:${{ matrix.os-name }}
+    - name: Save binary artifact [standalone]
+      uses: actions/upload-artifact@v3
+      with:
+        name: backuphub-${{ matrix.os-name }}-node-${{ matrix.node-version }}
+        path: bin/${{ matrix.binary-name }}
+        retention-days: 14
+        if-no-files-found: error
+    - name: Create installer
+      if: matrix.os == 'windows-latest'
+      run: makensis .\windows_installer.nsi
+      working-directory: .\installer\windows_installer
+    - name: Save binary artifact [installer]
+      if: matrix.os == 'windows-latest'
+      uses: actions/upload-artifact@v3
+      with:
+        name: backuphub-installer-${{ matrix.os-name }}-node-${{ matrix.node-version }}
+        path: bin/${{ matrix.binary-name-installer }}
+        retention-days: 14
+        if-no-files-found: error
 
 
-  deploy:
-
-    runs-on: ubuntu-latest
+  update-documentation:
 
     strategy:
       matrix:
-        node-version: [16.x]
+        node-version: [18.x]
+        os: [ubuntu-latest]
+
+    runs-on: ${{ matrix.os }}
+    env:
+      GITHUB_URL_REPO: https://github.com/AnonymerNiklasistanonym/BackupHub/blob/main
+
+    # Only update documentation if the build didn't fail and happened on the main branch
+    needs: build
+    if: github.ref == 'refs/heads/main'
 
     steps:
     - uses: actions/checkout@v2
@@ -57,16 +113,18 @@ jobs:
       uses: actions/setup-node@v1
       with:
         node-version: ${{ matrix.node-version }}
-    - name: Install dependencies
+    - name: Install dependencies (apt)
+      if: matrix.os == 'ubuntu-latest'
+      run: sudo apt install graphviz
+    - name: Install dependencies (choco)
+      if: matrix.os == 'windows-latest'
+      run: choco install graphviz
+    - name: Install dependencies (npm)
       run: npm ci
-    - name: Create Docs
+    - name: Create documentation
       run: npm run docs
     - name: Deploy to GitHub Pages
-      # Only deploy the website when pushing on the main branch
-      if: github.ref == 'refs/heads/main'
-      uses: crazy-max/ghaction-github-pages@v2
+      uses: JamesIves/github-pages-deploy-action@v4.2.5
       with:
-        target_branch: gh-pages
-        build_dir: ./dist/docs/site
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        branch: gh-pages # The branch the action should deploy to.
+        folder: docs # The folder the action should deploy.

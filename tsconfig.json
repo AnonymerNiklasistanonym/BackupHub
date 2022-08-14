@@ -15,10 +15,7 @@
         "resolveJsonModule": true
     },
     "include": [
-        "src/plugins/rsync/*.ts",
-        "src/api/*.ts",
-        "src/**/*.ts",
-        "src/index.ts"
+        "src/**/*"
     ],
     "exclude": [
         "node_modules"

@@ -76,7 +76,7 @@ module.exports = {
         "no-cond-assign": "error",
         "no-console": [ "error", { allow: [ "info", "warn", "error" ] } ],
         "no-debugger": "error",
-        "no-duplicate-imports": "error",
+
         "no-empty": "error",
         "no-eval": "error",
         "no-fallthrough": "off",
@@ -98,7 +98,7 @@ module.exports = {
         "radix": "error",
         "rest-spread-spacing": [ "error", "always" ],
         "semi": "off",
-        "sort-imports": [ "error", { ignoreCase: true } ],
+        "sort-imports": [ "error", { allowSeparatedGroups: true, ignoreCase: true } ],
         "sort-keys": "error",
         "space-before-blocks": [ "error", "always" ],
         "space-before-function-paren": [ "error", "always" ],
