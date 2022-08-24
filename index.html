@@ -1,0 +1,393 @@
+<!doctype html>
+<html class="default no-js">
+<head>
+	<meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<title>Backup Hub Modules</title>
+	<meta name="description" content="Documentation for Backup Hub Modules">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<link rel="stylesheet" href="assets/css/main.css">
+	<script async src="assets/js/search.js" id="search-script"></script>
+</head>
+<body>
+<header>
+	<div class="tsd-page-toolbar">
+		<div class="container">
+			<div class="table-wrap">
+				<div class="table-cell" id="tsd-search" data-index="assets/js/search.json" data-base=".">
+					<div class="field">
+						<label for="tsd-search-field" class="tsd-widget search no-caption">Search</label>
+						<input id="tsd-search-field" type="text" />
+					</div>
+					<ul class="results">
+						<li class="state loading">Preparing search index...</li>
+						<li class="state failure">The search index is not available</li>
+					</ul>
+					<a href="index.html" class="title">Backup Hub Modules</a>
+				</div>
+				<div class="table-cell" id="tsd-widgets">
+					<div id="tsd-filter">
+						<a href="#" class="tsd-widget options no-caption" data-toggle="options">Options</a>
+						<div class="tsd-filter-group">
+							<div class="tsd-select" id="tsd-filter-visibility">
+								<span class="tsd-select-label">All</span>
+								<ul class="tsd-select-list">
+									<li data-value="public">Public</li>
+									<li data-value="protected">Public/Protected</li>
+									<li data-value="private" class="selected">All</li>
+								</ul>
+							</div>
+							<input type="checkbox" id="tsd-filter-inherited" checked />
+							<label class="tsd-widget" for="tsd-filter-inherited">Inherited</label>
+							<input type="checkbox" id="tsd-filter-externals" checked />
+							<label class="tsd-widget" for="tsd-filter-externals">Externals</label>
+						</div>
+					</div>
+					<a href="#" class="tsd-widget menu no-caption" data-toggle="menu">Menu</a>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div class="tsd-page-title">
+		<div class="container">
+			<h1>Backup Hub Modules</h1>
+		</div>
+	</div>
+</header>
+<div class="container container-main">
+	<div class="row">
+		<div class="col-8 col-content">
+			<div class="tsd-panel tsd-typography">
+				<a href="#documentation" id="documentation" style="color: inherit; text-decoration: none;">
+					<h1>Documentation</h1>
+				</a>
+				<p>This is the source code documentation of the project.</p>
+				<a href="#backuphub" id="backuphub" style="color: inherit; text-decoration: none;">
+					<h2>BackupHub</h2>
+				</a>
+				<p>Cross platform program for easy backups and good plugin support.</p>
+				<a href="#warning" id="warning" style="color: inherit; text-decoration: none;">
+					<h2>Warning</h2>
+				</a>
+				<p><strong>This code is not thoroughly tested which means it could somehow delete you drive/backup/etc!!!</strong></p>
+				<p>This is only a personal solution for myself to not use a bash backup script which was too limited and <em>complicated</em> for me as soon as I wanted to do more advanced things.</p>
+				<a href="#quickstart" id="quickstart" style="color: inherit; text-decoration: none;">
+					<h2>Quickstart</h2>
+				</a>
+				<a href="#write-backup-script" id="write-backup-script" style="color: inherit; text-decoration: none;">
+					<h3>Write Backup Script</h3>
+				</a>
+				<ul>
+					<li><p>In the file <a href="https://github.com/AnonymerNiklasistanonym/BackupHub/blob/main/src/index.ts"><code>src/index.ts</code></a> a description of a backup can be specified</p>
+						<ul>
+							<li><p>Variables can be set that can resolve to multiple values (circular dependencies throw errors!):</p>
+								<pre><code class="language-ts"><span style="color: #001080">backupHub</span><span style="color: #000000">.</span><span style="color: #795E26">addGlobalVariable</span><span style="color: #000000">({</span>
+<span style="color: #000000">    </span><span style="color: #001080">description:</span><span style="color: #000000"> </span><span style="color: #A31515">&quot;The external backup drives&quot;</span><span style="color: #000000">,</span>
+<span style="color: #000000">    </span><span style="color: #001080">name:</span><span style="color: #000000"> </span><span style="color: #A31515">&quot;BACKUP_DRIVE&quot;</span><span style="color: #000000">,</span>
+<span style="color: #000000">    </span><span style="color: #001080">value:</span><span style="color: #000000"> [ </span><span style="color: #A31515">&quot;/run/media/${USER}/Backup 4TB&quot;</span><span style="color: #000000">, </span><span style="color: #A31515">&quot;/run/media/${USER}/Backup #1&quot;</span><span style="color: #000000"> ]</span>
+<span style="color: #000000">});</span>
+<span style="color: #001080">backupHub</span><span style="color: #000000">.</span><span style="color: #795E26">addGlobalVariable</span><span style="color: #000000">({</span>
+<span style="color: #000000">    </span><span style="color: #001080">description:</span><span style="color: #000000"> </span><span style="color: #A31515">&quot;The user name&quot;</span><span style="color: #000000">,</span>
+<span style="color: #000000">    </span><span style="color: #001080">name:</span><span style="color: #000000"> </span><span style="color: #A31515">&quot;USER&quot;</span><span style="color: #000000">,</span>
+<span style="color: #000000">    </span><span style="color: #001080">value:</span><span style="color: #000000"> </span><span style="color: #A31515">&quot;niklas&quot;</span>
+<span style="color: #000000">});</span>
+
+<span style="color: #0000FF">const</span><span style="color: #000000"> </span><span style="color: #0070C1">originalValue</span><span style="color: #000000"> = </span><span style="color: #A31515">&quot;${...BACKUP_DRIVE}/backupDir&quot;</span><span style="color: #000000">;</span>
+<span style="color: #0000FF">const</span><span style="color: #000000"> </span><span style="color: #0070C1">internalResolvedValue</span><span style="color: #000000"> = [</span>
+<span style="color: #000000">    </span><span style="color: #A31515">&quot;/run/media/niklas/Backup 4TB/backupDir&quot;</span><span style="color: #000000">,</span>
+<span style="color: #000000">    </span><span style="color: #A31515">&quot;/run/media/niklas/Backup #1/backupDir&quot;</span>
+<span style="color: #000000">];</span>
+</code></pre>
+							</li>
+							<li><p>Jobs consist of a description and instructions:</p>
+								<pre><code class="language-ts"><span style="color: #008000">// Set dryRun to false to actually execute the job and not just print what it will do</span>
+<span style="color: #0000FF">const</span><span style="color: #000000"> </span><span style="color: #0070C1">outputBackupHomeDir</span><span style="color: #000000"> = </span><span style="color: #AF00DB">await</span><span style="color: #000000"> </span><span style="color: #001080">backupHub</span><span style="color: #000000">.</span><span style="color: #795E26">runJob</span><span style="color: #000000">({</span>
+<span style="color: #000000">    </span><span style="color: #001080">data:</span><span style="color: #000000"> {</span>
+<span style="color: #000000">        </span><span style="color: #001080">backupDirs:</span><span style="color: #000000"> [</span><span style="color: #A31515">&quot;${...BACKUP_DRIVE}/BackupManjaroDesktop/home_${USER}&quot;</span><span style="color: #000000">],</span>
+<span style="color: #000000">        </span><span style="color: #001080">dryRun:</span><span style="color: #000000"> </span><span style="color: #0000FF">true</span><span style="color: #000000">,</span>
+<span style="color: #000000">        </span><span style="color: #001080">sourceDir:</span><span style="color: #000000"> </span><span style="color: #A31515">&quot;/home/${USER}&quot;</span>
+<span style="color: #000000">    },</span>
+<span style="color: #000000">    </span><span style="color: #001080">instructions:</span><span style="color: #000000"> [</span>
+<span style="color: #000000">        {</span>
+<span style="color: #000000">            </span><span style="color: #001080">command:</span><span style="color: #000000"> </span><span style="color: #001080">RsyncCommand</span><span style="color: #000000">.</span><span style="color: #0070C1">SYNCHRONIZE</span><span style="color: #000000">,</span>
+<span style="color: #000000">            </span><span style="color: #001080">options:</span><span style="color: #000000"> {</span>
+<span style="color: #000000">                </span><span style="color: #001080">backupDirs:</span><span style="color: #000000"> [</span><span style="color: #A31515">&quot;${...BACKUP_DIR}/&quot;</span><span style="color: #000000">],</span>
+<span style="color: #000000">                </span><span style="color: #001080">excludeFrom:</span><span style="color: #000000"> [</span><span style="color: #A31515">&quot;/home/${USER}/rsync_exclude_list.txt&quot;</span><span style="color: #000000">],</span>
+<span style="color: #000000">                </span><span style="color: #001080">sourceDir:</span><span style="color: #000000"> </span><span style="color: #A31515">&quot;${SOURCE_DIR}/&quot;</span>
+<span style="color: #000000">            },</span>
+<span style="color: #000000">            </span><span style="color: #001080">plugin:</span><span style="color: #000000"> </span><span style="color: #A31515">&quot;Rsync&quot;</span>
+<span style="color: #000000">        } </span><span style="color: #AF00DB">as</span><span style="color: #000000"> </span><span style="color: #267F99">Rsync</span><span style="color: #000000">.</span><span style="color: #267F99">Instruction</span>
+<span style="color: #000000">    ],</span>
+<span style="color: #000000">    </span><span style="color: #001080">name:</span><span style="color: #000000"> </span><span style="color: #A31515">&quot;Backup home directory&quot;</span>
+<span style="color: #000000">});</span>
+<span style="color: #001080">console</span><span style="color: #000000">.</span><span style="color: #795E26">log</span><span style="color: #000000">(</span><span style="color: #795E26">logFormatter</span><span style="color: #000000">(</span><span style="color: #001080">outputBackupHomeDir</span><span style="color: #000000">.</span><span style="color: #001080">log</span><span style="color: #000000">));</span>
+</code></pre>
+								<pre><code class="language-ts"><span style="color: #008000">// Set dryRun to false to actually execute the job and not just print what it will do</span>
+<span style="color: #0000FF">const</span><span style="color: #000000"> </span><span style="color: #0070C1">outputCopyFilesVscodeSettings</span><span style="color: #000000"> = </span><span style="color: #AF00DB">await</span><span style="color: #000000"> </span><span style="color: #001080">backupHub</span><span style="color: #000000">.</span><span style="color: #795E26">runJob</span><span style="color: #000000">({</span>
+<span style="color: #000000">    </span><span style="color: #001080">data:</span><span style="color: #000000"> {</span>
+<span style="color: #000000">        </span><span style="color: #001080">backupDirs:</span><span style="color: #000000"> [</span><span style="color: #A31515">&quot;${...BACKUP_DRIVE}/BackupManjaroDesktop&quot;</span><span style="color: #000000">],</span>
+<span style="color: #000000">        </span><span style="color: #001080">dryRun:</span><span style="color: #000000"> </span><span style="color: #0000FF">true</span><span style="color: #000000">,</span>
+<span style="color: #000000">        </span><span style="color: #001080">sourceDir:</span><span style="color: #000000"> </span><span style="color: #A31515">&quot;/home/${USER}/.config/Code - Insiders/User&quot;</span>
+<span style="color: #000000">    },</span>
+<span style="color: #000000">    </span><span style="color: #001080">instructions:</span><span style="color: #000000"> [</span>
+<span style="color: #000000">        {</span>
+<span style="color: #000000">            </span><span style="color: #001080">command:</span><span style="color: #000000"> </span><span style="color: #001080">CopyFilesCommand</span><span style="color: #000000">.</span><span style="color: #0070C1">COPY</span><span style="color: #000000">,</span>
+<span style="color: #000000">            </span><span style="color: #001080">options:</span><span style="color: #000000"> {</span>
+<span style="color: #000000">                </span><span style="color: #001080">backupDirs:</span><span style="color: #000000"> [</span><span style="color: #A31515">&quot;${...BACKUP_DIR}/vscode_settings_${USER}&quot;</span><span style="color: #000000">],</span>
+<span style="color: #000000">                </span><span style="color: #001080">deleteBackupDir:</span><span style="color: #000000"> </span><span style="color: #0000FF">true</span><span style="color: #000000">,</span>
+<span style="color: #000000">                </span><span style="color: #001080">glob:</span><span style="color: #000000"> </span><span style="color: #0000FF">true</span><span style="color: #000000">,</span>
+<span style="color: #000000">                </span><span style="color: #001080">sourceFiles:</span><span style="color: #000000"> [</span>
+<span style="color: #000000">                    </span><span style="color: #A31515">&quot;${SOURCE_DIR}/keybindings.json&quot;</span><span style="color: #000000">,</span>
+<span style="color: #000000">                    </span><span style="color: #A31515">&quot;${SOURCE_DIR}/settings.json&quot;</span><span style="color: #000000">,</span>
+<span style="color: #000000">                    </span><span style="color: #A31515">&quot;${SOURCE_DIR}/syncLocalSettings.json&quot;</span><span style="color: #000000">,</span>
+<span style="color: #000000">                    </span><span style="color: #A31515">&quot;${SOURCE_DIR}/snippets&quot;</span>
+<span style="color: #000000">                ]</span>
+<span style="color: #000000">            },</span>
+<span style="color: #000000">            </span><span style="color: #001080">plugin:</span><span style="color: #000000"> </span><span style="color: #A31515">&quot;CopyFiles&quot;</span>
+<span style="color: #000000">        } </span><span style="color: #AF00DB">as</span><span style="color: #000000"> </span><span style="color: #267F99">CopyFiles</span><span style="color: #000000">.</span><span style="color: #267F99">Instruction</span>
+<span style="color: #000000">    ],</span>
+<span style="color: #000000">    </span><span style="color: #001080">name:</span><span style="color: #000000"> </span><span style="color: #A31515">&quot;Backup VSCode setting files&quot;</span>
+<span style="color: #000000">});</span>
+<span style="color: #001080">console</span><span style="color: #000000">.</span><span style="color: #795E26">log</span><span style="color: #000000">(</span><span style="color: #795E26">logFormatter</span><span style="color: #000000">(</span><span style="color: #001080">outputCopyFilesVscodeSettings</span><span style="color: #000000">.</span><span style="color: #001080">log</span><span style="color: #000000">));</span>
+</code></pre>
+							</li>
+						</ul>
+					</li>
+					<li><p>New instructions can easily be added and then combined as can be seen in the directory <a href="src/plugins"><code>src/plugins</code></a></p>
+					</li>
+				</ul>
+				<a href="#run-backup-script" id="run-backup-script" style="color: inherit; text-decoration: none;">
+					<h3>Run Backup Script</h3>
+				</a>
+				<pre><code class="language-sh"><span style="color: #008000"># This is only necessary once to be able to build the backup script</span>
+<span style="color: #000000">npm install</span>
+<span style="color: #008000"># This is necessary for every time you rewrite the backup script</span>
+<span style="color: #000000">npm run build</span>
+<span style="color: #008000"># Run this to execute the built backup script</span>
+<span style="color: #000000">npm run start 2&gt;&amp;1 | tee -a backup.log</span>
+</code></pre>
+				<p>If you want to debug where something goes wrong you can try the <code>dev</code> command which prints even more log messages:</p>
+				<pre><code class="language-sh"><span style="color: #008000"># This is only necessary once to be able to build the backup script</span>
+<span style="color: #000000">npm install</span>
+<span style="color: #008000"># Run this to execute and build the backup script with debug console logging</span>
+<span style="color: #008000"># It is recommended to turn console logging off since otherwise the logs</span>
+<span style="color: #008000"># could collide and merge their output at times.</span>
+<span style="color: #000000">npm run dev 2&gt;&amp;1 | tee -a backup.log</span>
+</code></pre>
+				<a href="#plugin-instructions" id="plugin-instructions" style="color: inherit; text-decoration: none;">
+					<h2>Plugin Instructions</h2>
+				</a>
+				<a href="#github" id="github" style="color: inherit; text-decoration: none;">
+					<h3>GitHub</h3>
+				</a>
+				<p>To use this plugin to update your connected repositories create a GitHub access token with full <code>repo</code> level to access (to only clone and update) public/private repositories.
+				This information needs to be added to the command instructions, but be sure to keep this information private by loading it from an external JSON file:</p>
+				<pre><code class="language-json"><span style="color: #000000">{</span>
+<span style="color: #000000">    </span><span style="color: #0451A5">&quot;accountName&quot;</span><span style="color: #000000">: </span><span style="color: #A31515">&quot;Accountname&quot;</span><span style="color: #000000">,</span>
+<span style="color: #000000">    </span><span style="color: #0451A5">&quot;oauthToken&quot;</span><span style="color: #000000">: </span><span style="color: #A31515">&quot;thegeneratedaccesstoken&quot;</span>
+<span style="color: #000000">}</span>
+</code></pre>
+				<a href="#gitlab" id="gitlab" style="color: inherit; text-decoration: none;">
+					<h3>GitLab</h3>
+				</a>
+				<p>To use this plugin to update your connected repositories create a GitLab access token with full <code>api</code> level to access (to only clone and update) public/private repositories.
+				This information needs to be added to the command instructions, but be sure to keep this information private by loading it from an external JSON file:</p>
+				<pre><code class="language-json"><span style="color: #000000">{</span>
+<span style="color: #000000">    </span><span style="color: #0451A5">&quot;accountName&quot;</span><span style="color: #000000">: </span><span style="color: #A31515">&quot;Accountname&quot;</span><span style="color: #000000">,</span>
+<span style="color: #000000">    </span><span style="color: #0451A5">&quot;hostUrl&quot;</span><span style="color: #000000">: </span><span style="color: #A31515">&quot;gitlab.com&quot;</span><span style="color: #000000">,</span>
+<span style="color: #000000">    </span><span style="color: #0451A5">&quot;oauthToken&quot;</span><span style="color: #000000">: </span><span style="color: #A31515">&quot;thegeneratedaccesstoken&quot;</span>
+<span style="color: #000000">}</span>
+</code></pre>
+				<a href="#git" id="git" style="color: inherit; text-decoration: none;">
+					<h3>Git</h3>
+				</a>
+				<p>To use this plugin it is advised to just load the repo list from an external JSON file:</p>
+				<pre><code class="language-json"><span style="color: #000000">[</span>
+<span style="color: #000000">    {</span>
+<span style="color: #000000">        </span><span style="color: #0451A5">&quot;name&quot;</span><span style="color: #000000">: </span><span style="color: #A31515">&quot;marktex&quot;</span><span style="color: #000000">,</span>
+<span style="color: #000000">        </span><span style="color: #0451A5">&quot;baseUrl&quot;</span><span style="color: #000000">: </span><span style="color: #A31515">&quot;aur.archlinux.org&quot;</span>
+<span style="color: #000000">    }</span>
+<span style="color: #000000">]</span>
+</code></pre>
+				<a href="#future-plans" id="future-plans" style="color: inherit; text-decoration: none;">
+					<h2>Future Plans</h2>
+				</a>
+				<ul>
+					<li><input disabled="" type="checkbox"> Create a JSON file parser to only pass a JSON configuration file to this program.</li>
+					<li><input disabled="" type="checkbox"> More tests</li>
+				</ul>
+				<a href="#open-todos" id="open-todos" style="color: inherit; text-decoration: none;">
+					<h2>Open TODOs</h2>
+				</a>
+				<p>In here you can find nearly all currently open FIXME and TODO tags in the code:</p>
+				<table>
+					<thead>
+						<tr>
+							<th>Tag</th>
+							<th>Description</th>
+							<th>Type</th>
+							<th>Link</th>
+						</tr>
+					</thead>
+					<tbody><tr>
+							<td>TODO</td>
+							<td>tag entry</td>
+							<td>.ts</td>
+							<td><a href="https://github.com/AnonymerNiklasistanonym/BackupHub/blob/master/docs/createTodoPage.ts#L10">Link to createTodoPage.ts</a></td>
+						</tr>
+						<tr>
+							<td>TODO</td>
+							<td>Enable version checking</td>
+							<td>.ts</td>
+							<td><a href="https://github.com/AnonymerNiklasistanonym/BackupHub/blob/master/src/api/helper/commandCanBeFound.ts#L6">Link to commandCanBeFound.ts</a></td>
+						</tr>
+				</tbody></table>
+			</div>
+		</div>
+		<div class="col-4 col-menu menu-sticky-wrap menu-highlight">
+			<nav class="tsd-navigation primary">
+				<ul>
+					<li class=" ">
+						<a href="modules.html">Modules</a>
+					</li>
+					<li class=" tsd-kind-module">
+						<a href="modules/api_backupHub.html">api/backup<wbr>Hub</a>
+					</li>
+					<li class=" tsd-kind-module">
+						<a href="modules/api_config.html">api/config</a>
+					</li>
+					<li class=" tsd-kind-module">
+						<a href="modules/api_error.html">api/error</a>
+					</li>
+					<li class=" tsd-kind-module">
+						<a href="modules/api_helper.html">api/helper</a>
+					</li>
+					<li class=" tsd-kind-module">
+						<a href="modules/api_helper_checkAndCreateBackupDir.html">api/helper/check<wbr>And<wbr>Create<wbr>Backup<wbr>Dir</a>
+					</li>
+					<li class=" tsd-kind-module">
+						<a href="modules/api_helper_commandCanBeFound.html">api/helper/command<wbr>Can<wbr>BeFound</a>
+					</li>
+					<li class=" tsd-kind-module">
+						<a href="modules/api_helper_createLogEntryGenerator.html">api/helper/create<wbr>Log<wbr>Entry<wbr>Generator</a>
+					</li>
+					<li class=" tsd-kind-module">
+						<a href="modules/api_helper_fileExists.html">api/helper/file<wbr>Exists</a>
+					</li>
+					<li class=" tsd-kind-module">
+						<a href="modules/api_helper_logFormatter.html">api/helper/log<wbr>Formatter</a>
+					</li>
+					<li class=" tsd-kind-module">
+						<a href="modules/api_helper_resolveVariableString.html">api/helper/resolve<wbr>Variable<wbr>String</a>
+					</li>
+					<li class=" tsd-kind-module">
+						<a href="modules/api_helper_runShellCommand.html">api/helper/run<wbr>Shell<wbr>Command</a>
+					</li>
+					<li class=" tsd-kind-module">
+						<a href="modules/api_instruction.html">api/instruction</a>
+					</li>
+					<li class=" tsd-kind-module">
+						<a href="modules/api_job.html">api/job</a>
+					</li>
+					<li class=" tsd-kind-module">
+						<a href="modules/api_log.html">api/log</a>
+					</li>
+					<li class=" tsd-kind-module">
+						<a href="modules/api_logLevel.html">api/log<wbr>Level</a>
+					</li>
+					<li class=" tsd-kind-module">
+						<a href="modules/api_plugin.html">api/plugin</a>
+					</li>
+					<li class=" tsd-kind-module">
+						<a href="modules/api_pluginList.html">api/plugin<wbr>List</a>
+					</li>
+					<li class=" tsd-kind-module">
+						<a href="modules/plugins_abruneggOneDrive_types.html">plugins/abrunegg<wbr>One<wbr>Drive/types</a>
+					</li>
+					<li class=" tsd-kind-module">
+						<a href="modules/plugins_abruneggOnedrive.html">plugins/abrunegg<wbr>Onedrive</a>
+					</li>
+					<li class=" tsd-kind-module">
+						<a href="modules/plugins_copyFiles.html">plugins/copy<wbr>Files</a>
+					</li>
+					<li class=" tsd-kind-module">
+						<a href="modules/plugins_copyFiles_types.html">plugins/copy<wbr>Files/types</a>
+					</li>
+					<li class=" tsd-kind-module">
+						<a href="modules/plugins_git.html">plugins/git</a>
+					</li>
+					<li class=" tsd-kind-module">
+						<a href="modules/plugins_git_gitInternal.html">plugins/git/git<wbr>Internal</a>
+					</li>
+					<li class=" tsd-kind-module">
+						<a href="modules/plugins_git_types.html">plugins/git/types</a>
+					</li>
+					<li class=" tsd-kind-module">
+						<a href="modules/plugins_github.html">plugins/github</a>
+					</li>
+					<li class=" tsd-kind-module">
+						<a href="modules/plugins_github_types.html">plugins/github/types</a>
+					</li>
+					<li class=" tsd-kind-module">
+						<a href="modules/plugins_gitlab.html">plugins/gitlab</a>
+					</li>
+					<li class=" tsd-kind-module">
+						<a href="modules/plugins_gitlab_types.html">plugins/gitlab/types</a>
+					</li>
+					<li class=" tsd-kind-module">
+						<a href="modules/plugins_grive.html">plugins/grive</a>
+					</li>
+					<li class=" tsd-kind-module">
+						<a href="modules/plugins_grive_types.html">plugins/grive/types</a>
+					</li>
+					<li class=" tsd-kind-module">
+						<a href="modules/plugins_pacman.html">plugins/pacman</a>
+					</li>
+					<li class=" tsd-kind-module">
+						<a href="modules/plugins_pacman_types.html">plugins/pacman/types</a>
+					</li>
+					<li class=" tsd-kind-module">
+						<a href="modules/plugins_rsync.html">plugins/rsync</a>
+					</li>
+					<li class=" tsd-kind-module">
+						<a href="modules/plugins_rsync_types.html">plugins/rsync/types</a>
+					</li>
+				</ul>
+			</nav>
+			<nav class="tsd-navigation secondary menu-sticky">
+				<ul class="before-current">
+				</ul>
+			</nav>
+		</div>
+	</div>
+</div>
+<footer class="with-border-bottom">
+	<div class="container">
+		<h2>Legend</h2>
+		<div class="tsd-legend-group">
+			<ul class="tsd-legend">
+				<li class="tsd-kind-namespace"><span class="tsd-kind-icon">Namespace</span></li>
+				<li class="tsd-kind-variable"><span class="tsd-kind-icon">Variable</span></li>
+				<li class="tsd-kind-function"><span class="tsd-kind-icon">Function</span></li>
+				<li class="tsd-kind-type-alias"><span class="tsd-kind-icon">Type alias</span></li>
+			</ul>
+			<ul class="tsd-legend">
+				<li class="tsd-kind-interface"><span class="tsd-kind-icon">Interface</span></li>
+				<li class="tsd-kind-interface tsd-has-type-parameter"><span class="tsd-kind-icon">Interface with type parameter</span></li>
+			</ul>
+			<ul class="tsd-legend">
+				<li class="tsd-kind-enum"><span class="tsd-kind-icon">Enumeration</span></li>
+			</ul>
+			<ul class="tsd-legend">
+				<li class="tsd-kind-class"><span class="tsd-kind-icon">Class</span></li>
+			</ul>
+		</div>
+	</div>
+</footer>
+<div class="container tsd-generator">
+	<p>Generated using <a href="https://typedoc.org/" target="_blank">TypeDoc</a></p>
+</div>
+<div class="overlay"></div>
+<script src="assets/js/main.js"></script>
+</body>
+</html>
